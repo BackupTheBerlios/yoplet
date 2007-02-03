@@ -1,4 +1,4 @@
-<project name="Applet" default="info">
+<project name="Yoplet" default="info">
 	<property environment="myenv" />
 	<property file="build.properties"/>
 

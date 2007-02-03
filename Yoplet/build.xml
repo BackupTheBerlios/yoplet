@@ -1,0 +1,97 @@
+<project name="Applet" default="info">
+	<property environment="myenv" />
+	<property file="build.properties"/>
+
+	<target name="info"  description="gives info about the build file targets">
+		<echo>[target : compile]</echo>
+		<echo>run javac command over source code</echo>
+		<echo>[target : build]</echo>
+		<echo>main target, responsible for archive creation after compilation</echo>		
+		<echo>[target : run-test]</echo>
+		<echo>run the appletviewer executable in order to test the applet</echo>		
+		<echo>[target : gen-certificate]</echo>
+		<echo>associate a certificate to be accepted by applet client</echo>
+	</target>
+	
+	<target name="default-browser" unless="browser">
+		<property name="browser" value="firefox"/>
+	</target>
+	
+	<target name="firefox">
+		<property name="browser" value="firefox"/>
+	</target>
+	
+	<target name="init-browser" depends="default-browser">
+		<property file="conf/browser/${browser}.properties"/>
+		<echo>browser : ${browser}</echo>
+		<echo>executable path : ${browser-exec}</echo>
+	</target>
+	
+	<target name="ie">
+		<property name="browser" value="ie"/>
+	</target>	
+	
+	<target name="compile">
+		<tstamp>
+			<format property="NOW" pattern="MM/dd/yyyy hh:mm aa"/>
+		</tstamp>
+		<delete dir="build/classes"/>
+		<mkdir dir="build/classes"/>
+		<javac srcdir="src/java" destdir="build/classes" includes="**/*.java" deprecation="yes" debug="${debug}" source="${source}" target="${target}"/>	
+	</target>
+	
+	
+	<target name="build" depends="compile">
+		<delete file="build/archives/applet.jar"/>
+		<mkdir dir="build/archives"/>
+		<jar destfile="build/archives/applet.jar">
+			<manifest>
+				<attribute name="Build-By" value="${user.name}" />
+				<section name="${ant.project.name}">
+					<attribute name="Specification-Title" value="${title}" />
+					<attribute name="Specification-Version" value="${build.version}" />
+					<attribute name="Implementation-Date" value="${NOW}" />
+				</section>
+			</manifest>
+			<fileset dir="build/classes" includes="**" excludes="**/*Test*"/>
+			<fileset dir="doc" includes="licence.txt"/>
+		</jar>
+	</target>
+	
+	
+	<target name="gen-key" description="certificate generation (usefull for getting into the filesystem">
+		<genkey alias="${key.alias}" storepass="${key.store.pass}" verbose="true">
+		  <dname>
+		    <param name="CN" value="${key.name}"/>
+		    <param name="OU" value="${key.organizational.unit}"/>
+		    <param name="O"  value="${key.organization}"/>
+   		    <param name="L"  value="${key.city}"/>
+		    <param name="C"  value="${key.country}"/>
+   		    <param name="ST"  value="${key.state}"/>
+		  </dname>
+		</genkey>		
+	</target>
+	
+	<target name="del-key" description="key certificate deletion">
+		<property name="exec" location="${myenv.JAVA_HOME}/bin/keytool"/>
+		<echo>keytool executable :  ${exec}</echo>
+		<exec executable="${exec}">
+			<arg line="-delete -alias ${key.alias} -storepass ${key.store.pass}"/>
+		</exec>
+	</target>
+	
+	<target name="run-test" depends="init-browser">
+		<copy todir="test" file="build/archives/applet.jar" overwrite="true"/>
+		<signjar jar="build/archives/applet.jar" alias="${key.alias}" storepass="${key.store.pass}" verbose="true"/>
+		<copy todir="${http.location}" overwrite="true">
+				<fileset dir="test"/>
+		</copy>
+		<exec dir="test" executable="${browser-exec}">
+			<arg value="${http.test.url}/test.html"/>
+		</exec>
+	</target>
+	
+	<target name="build-installer"  description="build installer">
+		<delete dir="build/installer"/>
+	</target>
+</project>

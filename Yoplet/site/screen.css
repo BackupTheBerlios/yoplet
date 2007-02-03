@@ -1,0 +1,30 @@
+body {
+    background-color: #FFFFFF;
+    margin: 24px;
+    font-family: Verdana, Geneva, Arial, Helvetica, sans-serif;
+}
+
+.title {
+	 background-color: #C1C0C2;
+    font-size: 14px;
+    padding-left: 20px;
+    margin-bottom: 4px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+.content {
+    background-color: #C1C0C2;
+    font-size: 12px;
+    padding: 12px;
+    margin-bottom: 4px;
+    font-family: Verdana, Geneva, Arial, Helvetica, sans-serif;
+}
+
+.footer {
+
+		background-color: #FFFFFF;
+		font-family: Verdana, Geneva, Arial, Helvetica, sans-serif;
+		font-size: 8px;
+}
+

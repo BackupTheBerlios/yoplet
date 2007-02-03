@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!DOCTYPE installer PUBLIC "-//tp23 //DTD Ant Installer Config//EN" "http://antinstaller.sf.net/dtd/antinstall-config-0.8.dtd">
+<installer
+			ui="swing,text"
+			verbose="true"
+			lookAndFeel="org.tp23.jgoodies.plaf.plastic.PlasticXPLookAndFeel"
+			name="Installer Wizard"
+			windowIcon="/resources/gkmain_inv.png"
+			defaultImageResource="/resources/makewavesdawn.png"
+			minJavaVersion="1.4"
+			finishButtonText="Install">
+	<!--  each page element represents a page of the installer -->
+	<page type="input" name="intro" displayText="Welcome to the Yoplet installation" target="Base">
+		<comment  displayText="This tool creates a default installer project"/>
+	</page>
+	
+	<page type="progress" name="progress" displayText="Build progress" showTargets="false"/>
+</installer>

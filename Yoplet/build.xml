@@ -42,9 +42,9 @@
 	
 	
 	<target name="build" depends="compile">
-		<delete file="build/archives/applet.jar"/>
+		<delete file="build/archives/yoplet.jar"/>
 		<mkdir dir="build/archives"/>
-		<jar destfile="build/archives/applet.jar">
+		<jar destfile="build/archives/yoplet.jar">
 			<manifest>
 				<attribute name="Build-By" value="${user.name}" />
 				<section name="${ant.project.name}">
@@ -91,7 +91,33 @@
 		</exec>
 	</target>
 	
-	<target name="build-installer"  description="build installer">
-		<delete dir="build/installer"/>
+	<target name="installer-def" description="installer task creation">
+		<path id="taskdef.cp">
+			<fileset dir="lib/antinstall/lib">
+				<include name="ant-installer-ext.jar"/>
+				<include name="ant-installer.jar"/>
+			</fileset>
+			
+		</path>
+			<taskdef name="installer" classname="org.tp23.antinstaller.taskdefs.Installer" classpathref="taskdef.cp"/>
+	</target>
+	
+	<target name="build-installer" depends="installer-def"  description="build installer">
+		<delete file="build/archives/Yoplet-installer.jar"/>
+		<mkdir dir="build/archives"/>
+		<installer 
+			file="build/archives/Yoplet-installer.jar" 
+			compress="true"
+			extractType="SelfExtractor"
+			installConfig="src/install-process/antinstall/antinstall-config.xml"
+			buildFile="src/install-process/build.xml"
+			antInstallLib="lib/antinstall/lib"
+			antLib="lib/antinstall/antlib"
+			validateConfig="true"
+			failOnError="true"
+			icons="bluecurve">
+				<fileset dir="src/install-process/antinstall/resources"/>
+				<fileset dir="build/archives" includes="yoplet.jar"/>
+		</installer>
 	</target>
 </project>

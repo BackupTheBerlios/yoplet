@@ -1,0 +1,138 @@
+/* Corps
+************************************************************/
+* {
+	padding: 0;
+	margin: 0;
+}
+body
+{
+	margin: 1em 0;
+	text-align: center;
+	font-size: 0.75em;
+	font-family: Arial, Helvetica, sans-serif;
+	background: #fff;
+	color: #000;
+}
+
+
+/* Liens
+************************************************************/
+a {
+	color: #001E91;
+	text-decoration: none;
+}
+a:hover {
+	color: #333;
+}
+
+
+/* Balises texte
+************************************************************/
+h2 {
+	padding-left: 30px;
+	line-height: 29px;
+	background: url(puce.png) no-repeat left bottom;
+	border-bottom: 1px solid #001E91;
+	border-left: 1px solid #001E91;
+	color: #001E91;
+	margin: 0 0 1em 0;
+	font-size: 1.4em;
+	font-weight: bold;
+}
+h2 a ,h2 a:hover ,h3 a ,h3 a:hover {
+	color: #001E91;
+}
+h3 {
+	font-size: 1.4em;
+	font-weight: bold;
+	border-bottom: 1px solid #001E91;
+	border-left: 3px solid #001E91;
+	padding-left: 5px;
+	color: #001E91;
+	margin: 0 0 1em 0.3em;
+	line-height: 25px;
+}
+h4 {
+	font-size: 1.2em;
+	font-weight: normal;
+	margin: 0 0 1.4em 1em;
+}
+h5 {
+	font-size: 1.1em;
+	font-weight: normal;
+	margin: 0 0 1em 1.1em;
+}
+h6 {
+	font-size: 0.9em;
+	font-weight: normal;
+	margin: 0 0 0.6em 1.5em;
+}
+p {
+	margin: 0 0 1em 0.5em;
+	line-height: 1.5em;
+}
+
+
+/* Conteneur
+************************************************************/
+div#container {
+	width: 900px;
+	margin: 0 auto;
+	text-align: left;
+}
+
+
+/* En-tete
+************************************************************/
+h1#header a
+{
+	display: block;
+	height: 215px;
+	background: url(header.jpg) no-repeat;
+}
+h1#header a span
+{
+	display: none;
+}
+
+
+/* Contenu
+************************************************************/
+div#content
+{
+	padding: 0 15px 20px 100px;
+	background: url(main.png) repeat-y;
+}
+
+
+
+/* Pied de page
+************************************************************/
+p#footer {
+	clear: left;
+	line-height: 57px;
+	padding: 0 0 0 25px;
+	height: 60px;
+	margin: 0;
+	color: #000;
+	font-size: 8px;
+	background: url(footer.jpg) no-repeat;
+}
+p#footer a {
+	color: #000;
+	text-decoration: none;
+}
+
+table {
+border-style:solid; 
+border-width:1px; 
+border-color:black;
+width:50%;
+}
+td { 
+border-style:solid; 
+border-width:1px; 
+border-color:red;
+width:50%;
+}
+

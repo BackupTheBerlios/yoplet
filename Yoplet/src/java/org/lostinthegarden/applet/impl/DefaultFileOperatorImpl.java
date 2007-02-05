@@ -53,11 +53,13 @@ public class DefaultFileOperatorImpl extends JApplet implements FileOperator {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(cnx.getInputStream()));
 			String line = null;
 			
+			int i = 0;
 			while ((line = reader.readLine()) != null)
 			{
-			        addItem(line);
+			        i++;
 			}
 			reader.close();
+			addItem("read " +i +"lines");
 			
 		}
 		catch (Exception e)
@@ -126,7 +128,7 @@ public class DefaultFileOperatorImpl extends JApplet implements FileOperator {
 	
 
     private void addItem(String newWord) {
-    	output.println(newWord);
+    	if (this.debug) output.println(newWord);
     }
 
 	public String getContent() {

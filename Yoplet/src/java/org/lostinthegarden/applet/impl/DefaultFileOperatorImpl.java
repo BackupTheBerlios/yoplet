@@ -130,11 +130,10 @@ public class DefaultFileOperatorImpl extends JApplet implements FileOperator {
     }
 
 	public String getContent() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.content;
 	}
 
 	public void setContent(String content) {
-		
+		this.content = content;
 	}    
 }

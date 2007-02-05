@@ -4,8 +4,11 @@ import java.awt.Container;
 import java.awt.Graphics;
 import java.awt.TextArea;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
@@ -17,125 +20,146 @@ import org.lostinthegarden.applet.graphic.impl.TextOutputPanel;
 
 public class DefaultFileOperatorImpl extends JApplet implements FileOperator {
 	
-	private StringBuffer buffer = null;
-	private String 		url		= null;
-	private File 		in 		= null;
-	private File 		out  	= null;
-	private boolean		debug	= false;
-	private Outputable  output	= null;
-	private String		content = null;
-	
-	// UI stuff
-	private TextArea 	texta 	= null;
-	
-	public DefaultFileOperatorImpl() {
-		super();
-	}
-
-	public void performRead() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void performRequest() {
-		HttpURLConnection cnx = null;
-		try
-		{
-			//FileInputStream stream = new FileInputStream(this.in);
-			URL url = new URL(this.url);
-			cnx = (HttpURLConnection)url.openConnection();
-			addItem("connexion prepared...");
-			cnx.connect();
-			addItem("request performed..." + cnx.getResponseMessage());
-//			OutputStreamWriter osw =  new OutputStreamWriter(cnx.getOutputStream());
-//			osw.flush();
-//			osw.close();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(cnx.getInputStream()));
-			String line = null;
-			
-			int i = 0;
-			while ((line = reader.readLine()) != null)
-			{
-			        i++;
-			}
-			reader.close();
-			addItem("read " +i +"lines");
-			
-		}
-		catch (Exception e)
-		{
-			System.out.println(e.getMessage());
-		}
-		finally
-		{
-			if (null != cnx)
-			{
-				cnx.disconnect();
-			}
-		}
-	}
-
-	public void performWrite() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void setDestFile(String path) {
-		if (null == out)
-		{
-			this.out = new File(path);
-		}
-	}
-
-	public void setSourceFile(String path) {
-		if (null == in)
-		{
-			this.in = new File(path);
-		}
-	}
-	
-	public void setDebug(boolean debug) {
-		this.debug = debug;
-	}
-
-	public void setUrl(String url) {
-		this.url = url;
-	}
-	
-	public void init() {
-		super.init();
-		Container contentPane = getContentPane ();
-	    // Create an instance of the panel subclass
-		// with JTextArea to show output
-		output = new TextOutputPanel ();
-	    // Add the panel to the applet's pane
-	    contentPane.add ((TextOutputPanel)output);
-	    
-		this.buffer = new StringBuffer();
-		setSourceFile(getParameter(FileOperator.SOURCE_FILE));
-		setDestFile(getParameter(FileOperator.DEST_FILE));
-		setDebug(Boolean.getBoolean(getParameter(FileOperator.DEBUG)));
-		setUrl(getParameter(FileOperator.URL));
-		addItem("init..");
-	}
-	
-	
-	public void start() {
-		super.start();
-		addItem("start...");
-		performRequest();		
-	}
-	
-
-    private void addItem(String newWord) {
-    	if (this.debug) output.println(newWord);
+	private StringBuffer buffer  = null;
+	private String       url	  = null;
+	private File         in      = null;
+	private File 	      out     = null;
+    private boolean     debug   = false;
+    private Outputable   output  = null;
+    private String       content = null;
+    
+    // UI stuff
+    private TextArea     texta     = null;
+    
+    public DefaultFileOperatorImpl() {
+        super();
     }
 
-	public String getContent() {
-		return this.content;
-	}
+    public void performRead() {
+        // TODO Auto-generated method stub
+        
+    }
 
-	public void setContent(String content) {
-		this.content = content;
-	}    
+    public void performRequest() {
+        HttpURLConnection cnx = null;
+        try
+        {
+            //FileInputStream stream = new FileInputStream(this.in);
+            URL url = new URL(this.url);
+            cnx = (HttpURLConnection)url.openConnection();
+            addItem("connexion prepared...");
+            cnx.connect();
+            addItem("request performed..." + cnx.getResponseMessage());
+//            OutputStreamWriter osw =  new OutputStreamWriter(cnx.getOutputStream());
+//            osw.flush();
+//            osw.close();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(cnx.getInputStream()));
+            String line = null;
+            
+            int i = 0;
+            while ((line = reader.readLine()) != null)
+            {
+                    i++;
+            }
+            reader.close();
+            addItem("read " +i +"lines");
+            
+        }
+        catch (Exception e)
+        {
+            System.out.println(e.getMessage());
+        }
+        finally
+        {
+            if (null != cnx)
+            {
+                cnx.disconnect();
+            }
+        }
+    }
+
+    public void performWrite() {
+        this.addItem("Writing: " + this.content);
+        this.addItem("To local path: " + this.out);
+        PrintWriter outWriter = null;
+        try {
+            this.out.createNewFile();
+            outWriter  = new PrintWriter(new BufferedWriter(new FileWriter(this.out)));
+			outWriter.print(this.content);
+
+        }
+        catch (Exception e) {
+            addItem(e.getMessage());
+        }
+        finally {
+            if (null != outWriter)
+            {
+                outWriter.flush();
+                outWriter.close();
+            }
+        }
+    }
+
+    public void setDestFile(String path) {
+        if (null == out)
+        {
+            this.out = new File(path);
+        }
+    }
+
+    public void setSourceFile(String path) {
+        if (null == in)
+        {
+            this.in = new File(path);
+        }
+    }
+    
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+    
+    public void init() {
+        super.init();
+        Container contentPane = getContentPane ();
+        // Create an instance of the panel subclass
+        // with JTextArea to show output
+        output = new TextOutputPanel ();
+        // Add the panel to the applet's pane
+        contentPane.add ((TextOutputPanel)output);
+        
+        this.buffer = new StringBuffer();
+        
+        setSourceFile(getParameter(FileOperator.SOURCE_FILE));
+        setDestFile(getParameter(FileOperator.DEST_FILE));
+        setDebug(new Boolean(getParameter(FileOperator.DEBUG)).booleanValue());
+        setUrl(getParameter(FileOperator.URL));
+        setContent(getParameter(FileOperator.CONTENT));
+        addItem("Initiliazing applet...");
+    }
+    
+    
+    public void start() {
+        super.start();
+        addItem("Starting applet...");
+        performWrite();        
+    }
+    
+
+    private void addItem(String newWord) {
+        if (this.debug) {
+            output.println(newWord);
+        }
+    }
+
+    public String getContent() {
+        return this.content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }    
 }

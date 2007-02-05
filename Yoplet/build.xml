@@ -80,9 +80,12 @@
 		</exec>
 	</target>
 	
-	<target name="run-test" depends="init-browser">
+	<target name="sign-jar" description="jar sign">
 		<copy todir="test" file="build/archives/applet.jar" overwrite="true"/>
 		<signjar jar="build/archives/applet.jar" alias="${key.alias}" storepass="${key.store.pass}" verbose="true"/>
+	</target>
+	
+	<target name="run-test" depends="init-browser">
 		<copy todir="${http.location}" overwrite="true">
 				<fileset dir="test"/>
 		</copy>

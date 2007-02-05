@@ -1,13 +1,38 @@
-<html>
-    <head>
-        <title> L'applet a Toto </title>
-    </head>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
+<head>
+  <title>Yoplet Test page</title>
+</head>
+
 <body>
-	<applet code="org.lostinthegarden.applet.impl.DefaultFileOperatorImpl.class" archive="../build/archives/yoplet.jar" width="800" height="300">
-		<param name="SOURCEFILE" value="/home/erwan/.bashrc"/>
-		<param name="DESTFILE" value="/home/erwan/.bashrc2"/>
-		<param name="URL" value="http://erwan.legoulven.free.fr/index.php"/>
-		<param name="DEBUG" value="true"/>
-	</applet>
+  <h1>Welcome to the Yoplet, the file manipulation applet</h1>
+  <p>Yoplet helps you
+  <ul>
+    <li>Write down to a local file</li>
+    <li>Read up a local file</li>
+    <li>Watch for a local file alteration (creation, modification, deletion)</li>
+  </ul>
+  
+  <applet code="org.lostinthegarden.applet.impl.DefaultFileOperatorImpl.class" archive="../build/archives/yoplet.jar" width="800" height="300">
+    <param name="SOURCEFILE" value="/home/erwan/.bashrc"/>
+    <param name="DESTFILE" value="C:\Documents and Settings\Thomas\Mes documents\test.txt"/>
+    <param name="URL" value="http://erwan.legoulven.free.fr/index.php"/>
+    <param name="CONTENT" value="Not a multiline yet a very very very very very very
+ very very very very very very very very very very very very very very very very very
+ very very very very very very very very very very very very very very very very very
+ very very very very very very very very very very very very very very very very very
+ very very very very very very very very very very very very very very very very very
+ very very very very very very very very very very very very very very very very very
+ very very very very very very very very very very very very very very very very very
+ very very very very very very very very very very very very very very very very very
+ very very very very very very very very very very very very very very very very very
+ very very very very very very very very very very very very very very very very very
+ very very very very very very very very very very very very very very very very very
+ long content"/>
+    <param name="DEBUG" value="true"/>
+  </applet>
 </body>
-</hmtl>
+</html>

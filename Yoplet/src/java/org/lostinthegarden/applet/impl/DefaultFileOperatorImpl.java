@@ -22,7 +22,8 @@ public class DefaultFileOperatorImpl extends JApplet implements FileOperator {
 	private File 		in 		= null;
 	private File 		out  	= null;
 	private boolean		debug	= false;
-	private Outputable output	= null;
+	private Outputable  output	= null;
+	private String		content = null;
 	
 	// UI stuff
 	private TextArea 	texta 	= null;
@@ -126,5 +127,14 @@ public class DefaultFileOperatorImpl extends JApplet implements FileOperator {
 
     private void addItem(String newWord) {
     	output.println(newWord);
-    }    
+    }
+
+	public String getContent() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public void setContent(String content) {
+		
+	}    
 }

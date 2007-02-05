@@ -12,6 +12,7 @@ public interface FileOperator {
 	public final static String DEST_FILE 	= 	"DESTFILE";
 	public final static String DEBUG 		=  	"DEBUG";
 	public final static String URL			=	"URL";
+	public final static String CONTENT		=	"CONTENT";
 	
 	/**
 	 * The FileOperator can read data
@@ -55,6 +56,19 @@ public interface FileOperator {
 	 * @param url
 	 */
 	public void setUrl(String url);
+	
+	
+	/**
+	 * Content getter
+	 * @return
+	 */
+	public String getContent();
+	
+	/**
+	 * Content setter
+	 * @param content content parameter
+	 */
+	public void setContent(String content);
 	
 
 }

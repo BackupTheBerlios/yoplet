@@ -81,7 +81,7 @@
 	</target>
 	
 	<target name="sign-jar" description="jar sign">
-		<copy todir="test" file="build/archives/applet.jar" overwrite="true"/>
+		<copy todir="test" file="build/archives/yoplet.jar" overwrite="true"/>
 		<signjar jar="build/archives/applet.jar" alias="${key.alias}" storepass="${key.store.pass}" verbose="true"/>
 	</target>
 	

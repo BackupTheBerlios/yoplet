@@ -1,4 +1,4 @@
-<project name="plm Installer" default="" basedir="${basedir}">
+<project name="Yoplet" default="" basedir="${basedir}">
 	<tstamp>
 		<format property="NOW" pattern="MM/dd/yyyy hh:mm aa" />
 		<format property="TODAY" pattern="yyyy-MM-dd"/>

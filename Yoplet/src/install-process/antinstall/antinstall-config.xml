@@ -14,5 +14,9 @@
 		<comment  displayText="This tool creates a default installer project"/>
 	</page>
 	
+	<page type="input" name="dest.folder" displayText="Installation directory selection">
+		<comment displayText="Select installation directory"/>
+		
+	</page>
 	<page type="progress" name="progress" displayText="Build progress" showTargets="false"/>
 </installer>

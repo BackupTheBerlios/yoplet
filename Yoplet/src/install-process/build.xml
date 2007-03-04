@@ -1,14 +1,13 @@
-<project name="Yoplet" default="" basedir="${basedir}">
+<project basedir="${basedir}">
 	<tstamp>
 		<format property="NOW" pattern="MM/dd/yyyy hh:mm aa" />
 		<format property="TODAY" pattern="yyyy-MM-dd"/>
 	</tstamp>
 
-	<property file="${basedir}/build.properties" />
 	<property environment="env"/>
 
 	<target name="install" depends="init,gen-certificate, sign-jar, cop-files"/>
-	
+
 	<target name="init">
 		<echo>+--------------------------------------------------------------------+</echo>
 		<echo>|                                                                    |</echo>
@@ -22,6 +21,7 @@
 			</and>
 		</condition>
 
+	<target name="Base"/>
 	</target>
 	
 	<target name="gen-certificate" if="gen_certificate">
@@ -32,7 +32,7 @@
 	
 	</target>
 	
-	<target name="cop-file">
-		<copy file="${basedir}" to="${install_dir}"/>
+	<target name="cop-files">
+		<copy file="${basedir}" todir="${install_dir}"/>
 	</target>
 </project>

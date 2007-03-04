@@ -16,7 +16,7 @@
 	
 	<page type="input" name="dest.folder" displayText="Installation directory selection">
 		<comment displayText="Select installation directory"/>
-		
+		<directory property="install_dir" displayText="install location" defaultValue="." defaultValueWin="." create="true"/>
 	</page>
-	<page type="progress" name="progress" displayText="Build progress" showTargets="false"/>
+	<page type="progress" name="progress" displayText="Build progress" showTargets="false" target="install"/>
 </installer>

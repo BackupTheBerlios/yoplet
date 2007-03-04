@@ -130,7 +130,14 @@
 	
 	<target name="build-installer" depends="installer-def"  description="build installer">
 		<delete file="build/archives/Yoplet-installer.jar"/>
+		<delete dir="build/installer"/>
 		<mkdir dir="build/archives"/>
+		<mkdir dir="build/installer/lib"/>
+		<mkdir dir="build/installer/src"/>
+		<copy todir="build/installer/lib" file="build/archives/yoplet.jar"/>
+		<copy todir="build/installer/src">
+			<fileset dir="src/java"/>
+		</copy>
 		<installer 
 			file="build/archives/Yoplet-installer.jar" 
 			compress="true"
@@ -143,7 +150,7 @@
 			failOnError="true"
 			icons="bluecurve">
 				<fileset dir="src/install-process/antinstall/resources"/>
-				<fileset dir="build/archives" includes="yoplet.jar"/>
+				<fileset dir="build/installer"/>
 		</installer>
 	</target>
 </project>

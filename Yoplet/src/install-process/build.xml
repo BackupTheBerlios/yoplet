@@ -21,8 +21,9 @@
 			</and>
 		</condition>
 
-	<target name="Base"/>
 	</target>
+	
+	<target name="Base"/>
 	
 	<target name="gen-certificate" if="gen_certificate">
 		

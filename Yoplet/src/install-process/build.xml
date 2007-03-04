@@ -34,6 +34,6 @@
 	</target>
 	
 	<target name="cop-files">
-		<copy file="${basedir}" todir="${install_dir}"/>
+		<copy file="${basedir}/lib/yoplet.jar" todir="${install_dir}"/>
 	</target>
 </project>

@@ -1,15 +1,17 @@
 package org.lostinthegarden.applet.impl;
 
 import java.awt.Container;
-import java.awt.TextArea;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import javax.swing.JApplet;
 
@@ -38,11 +40,30 @@ public class DefaultFileOperatorImpl extends JApplet implements FileOperator {
     		throw new Exception(comment);
     	}
     }
+    
+    private String[] readData(File in) throws Exception{
+    	String line = null;
+    	Collection lines = new ArrayList();
+		BufferedReader reader =  new BufferedReader(new FileReader(this.watchFile));
+		while ((line = reader.readLine()) != null) {
+			lines.add(line);
+		}
+    	return (String[])lines.toArray(new String[]{});
+    }
+    
+    /**
+     * File creation method
+     * @param paramPath input path
+     * @return corresponding File
+     */
     private File createParamFile(String paramPath) {
     	String path = getParameter(paramPath);
 		return  path != null ? new File(path) : null;
     }
     
+    /**
+     * Request perform method 
+     */
     public void performRequest() {
         HttpURLConnection cnx = null;
         try         {
@@ -78,13 +99,16 @@ public class DefaultFileOperatorImpl extends JApplet implements FileOperator {
             }
         }
     }
-
+    
+    /**
+     * Read Operation 
+     */
     public void performRead() {
         this.trace("Reading");
-
         try {
         	this.assertNotNull(this.readFile, "Read local path undefined");
-            this.trace(this.readFile.toString(), "From local path");
+            this.trace(this.readFile.getAbsolutePath(), "From local path");
+            String[] data = readData(this.readFile);
 		} 
         catch (Exception e) {
             this.trace("Warning: " + e.getMessage());
@@ -94,14 +118,16 @@ public class DefaultFileOperatorImpl extends JApplet implements FileOperator {
         }
     }
 
+    /**
+     * Write operation
+     */
     public void performWrite() {
         this.trace(this.content, "Writing");
-
 
         PrintWriter writer = null;
         try {
         	this.assertNotNull(this.writeFile, "Write local path undefined");
-            this.trace(this.writeFile.toString(), "To local path");
+            this.trace(this.writeFile.getAbsolutePath(), "To local path");
             this.writeFile.createNewFile();
             writer = new PrintWriter(new BufferedWriter(new FileWriter(this.writeFile)));
 			writer.print(this.content);
@@ -120,17 +146,26 @@ public class DefaultFileOperatorImpl extends JApplet implements FileOperator {
 
 	public void performWatch() {
         this.trace("Watching");
-
+        String line = null;
         try {
+        	//Basic solution, assuming the file is present
+        	//and triggering no action if file is not found
         	this.assertNotNull(this.watchFile, "Watch local path undefined");
-            this.trace(this.watchFile.toString(), "for local path");
-
+        	if (this.watchFile.exists() && this.watchFile.isFile()) {
+        		//reading info if file is there
+        		BufferedReader reader =  new BufferedReader(new FileReader(this.watchFile));
+        		String[] data = readData(this.watchFile);
+        		trace(data.length,"lines from " + this.watchFile.getAbsolutePath());
+        	}
+        	else
+        	{
+        		trace("No File found");
+            	
+            }
         } 
         catch (Exception e) {
             this.trace("Warning: " + e.getMessage());
         } 
-        finally {
-        }
 	}    
         
     public void init() {

@@ -1,30 +1,38 @@
 package org.lostinthegarden.applet;
 
 /**
- * @author 7uc0
+ * @author Yoplet consortium
  * FileOperator behavior specification. 
  */
 
 public interface FileOperator {
+	public final static String ACTION = "action";
+	public final static String ACTION_READ = "read";
+	public final static String ACTION_WRITE = "write";
+	public final static String ACTION_WATCH = "watch";
+
+	public final static String READ_PATH  = "readPath";
+	public final static String WRITE_PATH = "writePath";
+	public final static String WATCH_PATH = "watchPath";
 	
-	
-	public final static String SOURCE_FILE 	= 	"SOURCEFILE";
-	public final static String DEST_FILE 	= 	"DESTFILE";
-	public final static String DEBUG 		=  	"DEBUG";
-	public final static String URL			=	"URL";
-	public final static String CONTENT		=	"CONTENT";
+	public final static String DEBUG      = "debug";
+	public final static String URL        = "url";
+	public final static String CONTENT    = "content";
 	
 	/**
-	 * The FileOperator can read data
-	 * from a source file
+	 * FileOperator will read data from a target read path
 	 */
 	public void performRead();
 	
 	/**
-	 * It can also write to a destination
-	 * File
+	 * FileOperator will write data to a target write path
 	 */
 	public void performWrite();
+	
+	/**
+	 * FileOperator will watch for the creation of watch path
+	 */
+	public void performWatch ();
 	
 	/**
 	 * File Operator can invoke remote servers
@@ -32,32 +40,6 @@ public interface FileOperator {
 	 */
 	public void performRequest();
 
-	
-	/**
-	 * One can specify its source file
-	 * @param path source file spec
-	 */
-	public void setSourceFile(String path);
-	
-	/**
-	 * One can specify its destination file
-	 * @param path
-	 */
-	public void setDestFile(String path);
-	
-	
-	/**
-	 * debug mode setter
-	 */
-	public void setDebug(boolean debug);
-	
-	/**
-	 * url setter
-	 * @param url
-	 */
-	public void setUrl(String url);
-	
-	
 	/**
 	 * Content getter
 	 * @return

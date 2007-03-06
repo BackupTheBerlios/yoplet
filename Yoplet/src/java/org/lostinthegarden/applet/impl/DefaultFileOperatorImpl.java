@@ -1,7 +1,6 @@
 package org.lostinthegarden.applet.impl;
 
 import java.awt.Container;
-import java.awt.Graphics;
 import java.awt.TextArea;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -19,37 +18,40 @@ import org.lostinthegarden.applet.graphic.Outputable;
 import org.lostinthegarden.applet.graphic.impl.TextOutputPanel;
 
 public class DefaultFileOperatorImpl extends JApplet implements FileOperator {
+	private String       action	= null;
+
+	private File         readFile	= null;
+	private File         writeFile = null;
+	private File         watchFile = null;
 	
-	private StringBuffer buffer  = null;
-	private String       url	  = null;
-	private File         in      = null;
-	private File 	      out     = null;
-    private boolean     debug   = false;
-    private Outputable   output  = null;
-    private String       content = null;
-    
-    // UI stuff
-    private TextArea     texta     = null;
+	private String       url		= null;
+    private boolean     debug		= false;
+    private Outputable   output	= null;
+    private String       content	= null;
     
     public DefaultFileOperatorImpl() {
         super();
     }
 
-    public void performRead() {
-        // TODO Auto-generated method stub
-        
+    private void assertNotNull(Object object, String comment) throws Exception {
+    	if (null == object) {
+    		throw new Exception(comment);
+    	}
     }
-
+    private File createParamFile(String paramPath) {
+    	String path = getParameter(paramPath);
+		return  path != null ? new File(path) : null;
+    }
+    
     public void performRequest() {
         HttpURLConnection cnx = null;
-        try
-        {
+        try         {
             //FileInputStream stream = new FileInputStream(this.in);
             URL url = new URL(this.url);
             cnx = (HttpURLConnection)url.openConnection();
-            addItem("connexion prepared...");
+            this.trace("connexion prepared");
             cnx.connect();
-            addItem("request performed..." + cnx.getResponseMessage());
+            this.trace(cnx.getResponseMessage(), "request performed");
 //            OutputStreamWriter osw =  new OutputStreamWriter(cnx.getOutputStream());
 //            osw.flush();
 //            osw.close();
@@ -57,12 +59,11 @@ public class DefaultFileOperatorImpl extends JApplet implements FileOperator {
             String line = null;
             
             int i = 0;
-            while ((line = reader.readLine()) != null)
-            {
-                    i++;
+            while ((line = reader.readLine()) != null) {
+            i++;
             }
             reader.close();
-            addItem("read " +i +"lines");
+            this.trace(i, "Lines Read");
             
         }
         catch (Exception e)
@@ -78,80 +79,129 @@ public class DefaultFileOperatorImpl extends JApplet implements FileOperator {
         }
     }
 
-    public void performWrite() {
-        this.addItem("Writing: " + this.content);
-        this.addItem("To local path: " + this.out);
-        PrintWriter outWriter = null;
-        try {
-            this.out.createNewFile();
-            outWriter  = new PrintWriter(new BufferedWriter(new FileWriter(this.out)));
-			outWriter.print(this.content);
+    public void performRead() {
+        this.trace("Reading");
 
-        }
+        try {
+        	this.assertNotNull(this.readFile, "Read local path undefined");
+            this.trace(this.readFile.toString(), "From local path");
+		} 
         catch (Exception e) {
-            addItem(e.getMessage());
-        }
+            this.trace("Warning: " + e.getMessage());
+            
+		}
         finally {
-            if (null != outWriter)
-            {
-                outWriter.flush();
-                outWriter.close();
+        }
+    }
+
+    public void performWrite() {
+        this.trace(this.content, "Writing");
+
+
+        PrintWriter writer = null;
+        try {
+        	this.assertNotNull(this.writeFile, "Write local path undefined");
+            this.trace(this.writeFile.toString(), "To local path");
+            this.writeFile.createNewFile();
+            writer = new PrintWriter(new BufferedWriter(new FileWriter(this.writeFile)));
+			writer.print(this.content);
+
+        } 
+        catch (Exception e) {
+            this.trace("Warning: " + e.getMessage());
+        } 
+        finally {
+            if (null != writer) {
+                writer.flush();
+                writer.close();
             }
         }
     }
 
-    public void setDestFile(String path) {
-        if (null == out)
-        {
-            this.out = new File(path);
-        }
-    }
+	public void performWatch() {
+        this.trace("Watching");
 
-    public void setSourceFile(String path) {
-        if (null == in)
-        {
-            this.in = new File(path);
-        }
-    }
-    
-    public void setDebug(boolean debug) {
-        this.debug = debug;
-    }
+        try {
+        	this.assertNotNull(this.watchFile, "Watch local path undefined");
+            this.trace(this.watchFile.toString(), "for local path");
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
-    
+        } 
+        catch (Exception e) {
+            this.trace("Warning: " + e.getMessage());
+        } 
+        finally {
+        }
+	}    
+        
     public void init() {
         super.init();
+        
+        // UI initialisation
         Container contentPane = getContentPane ();
-        // Create an instance of the panel subclass
-        // with JTextArea to show output
-        output = new TextOutputPanel ();
-        // Add the panel to the applet's pane
-        contentPane.add ((TextOutputPanel)output);
+        this.output = new TextOutputPanel();
+        contentPane.add ((TextOutputPanel) this.output);
         
-        this.buffer = new StringBuffer();
-        
-        setSourceFile(getParameter(FileOperator.SOURCE_FILE));
-        setDestFile(getParameter(FileOperator.DEST_FILE));
-        setDebug(new Boolean(getParameter(FileOperator.DEBUG)).booleanValue());
-        setUrl(getParameter(FileOperator.URL));
-        setContent(getParameter(FileOperator.CONTENT));
-        addItem("Initiliazing applet...");
+        this.trace("Initiliazing applet");
+
+        // Data initialisation
+        this.action = getParameter(FileOperator.ACTION);
+
+        this.readFile = createParamFile(FileOperator.READ_PATH);
+        this.writeFile = createParamFile(FileOperator.WRITE_PATH);
+        this.watchFile = createParamFile(FileOperator.WATCH_PATH);
+
+        this.debug = new Boolean(getParameter(FileOperator.DEBUG)).booleanValue();
+        this.url = getParameter(FileOperator.URL);
+        this.content = getParameter(FileOperator.CONTENT);
     }
     
     
     public void start() {
         super.start();
-        addItem("Starting applet...");
-        performWrite();        
+        
+        try {
+            this.trace("Starting applet");
+            this.trace(this.action, "Action type");
+            
+            if (this.action.equals(FileOperator.ACTION_READ)) {
+    			this.performRead();
+            } 
+            
+            if (this.action.equals(FileOperator.ACTION_WRITE)) {
+                this.trace("Applet writing");
+    			this.performWrite();
+            }
+            
+            if (this.action.equals(FileOperator.ACTION_WATCH)) {
+                this.trace("Applet watching");
+    			this.performWatch();
+            } 
+
+            this.trace("Applet now sleeping");
+		} 
+        catch (Exception e) {
+			// TODO: handle exception
+		}
+
     }
     
 
-    private void addItem(String newWord) {
+    private void trace(String string) {
         if (this.debug) {
-            output.println(newWord);
+            output.println(">  " + string + "...");
+        }
+	}
+
+	private void trace(int value, String key) {
+        if (this.debug) {
+            output.println(">>  " + key + " = " + value);
+        }
+    }
+
+	private void trace(String value, String key) {
+        if (this.debug) {
+            output.println(">>  " + key + " :");
+            output.println(value);
         }
     }
 
@@ -161,5 +211,6 @@ public class DefaultFileOperatorImpl extends JApplet implements FileOperator {
 
     public void setContent(String content) {
         this.content = content;
-    }    
+    }
+
 }

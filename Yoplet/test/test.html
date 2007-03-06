@@ -8,19 +8,36 @@
 </head>
 
 <body>
-  <h1>Welcome to the Yoplet, the file manipulation applet</h1>
-  <p>Yoplet helps you
-  <ul>
-    <li>Write down to a local file</li>
-    <li>Read up a local file</li>
-    <li>Watch for a local file alteration (creation, modification, deletion)</li>
-  </ul>
-  
-  <applet code="org.lostinthegarden.applet.impl.DefaultFileOperatorImpl.class" archive="../build/archives/yoplet.jar" width="800" height="300">
-    <param name="SOURCEFILE" value="/home/erwan/.bashrc"/>
-    <param name="DESTFILE" value="C:\Documents and Settings\Thomas\Mes documents\test.txt"/>
-    <param name="URL" value="http://erwan.legoulven.free.fr/index.php"/>
-    <param name="CONTENT" value="Not a multiline yet a very very very very very very
+
+<h1>Welcome to the Yoplet, the file manipulation applet</h1>
+
+<p>Yoplet helps you
+
+<ul>
+  <li>Write down to a local file</li>
+  <li>Read up a local file</li>
+  <li>Watch for a local file alteration (creation, modification, deletion)</li>
+</ul>
+
+<h2>Applet creation via HTML</h2>
+
+<p>Here, the applet element is hard coded in HTML coded and will perform one action, 
+depending on <tt>action</tt> parameter value.</p>
+
+<hr />
+
+<applet 
+  code="org.lostinthegarden.applet.impl.DefaultFileOperatorImpl.class" 
+  archive="../build/archives/yoplet.jar" 
+  width="600" 
+  height="200">
+  <param name="action" value="write" />
+  <param name="debug" value="true" />
+  <param name="readPath"  value="C:\Documents and Settings\Thomas\Mes documents\Yoplet read.txt" />
+  <param name="writePath" value="C:\Documents and Settings\Thomas\Mes documents\Yoplet write.txt" />
+  <param name="watchPath" value="C:\Documents and Settings\Thomas\Mes documents\Yoplet watch.txt" />
+  <param name="url" value="http://erwan.legoulven.free.fr/index.php" />
+  <param name="content" value="Not a multiline,---yet a very very very very very very
  very very very very very very very very very very very very very very very very very
  very very very very very very very very very very very very very very very very very
  very very very very very very very very very very very very very very very very very
@@ -32,7 +49,118 @@
  very very very very very very very very very very very very very very very very very
  very very very very very very very very very very very very very very very very very
  long content"/>
-    <param name="DEBUG" value="true"/>
-  </applet>
+</applet>
+
+<h2>Applet creation via HTML, action call via Javacript</h2>
+
+<p>Here, the applet element is hard coded in HTML coded but will perform one action (sleep mode), 
+then javascript on <tt>action</tt> parameter value.</p>
+
+
+<button onclick="document.yoplet.performRead()">Read with Yoplet</button>
+<button onclick="document.yoplet.performWrite()">Write with Yoplet</button>
+<button onclick="document.yoplet.performWatch()">Watch with Yoplet</button>
+
+<hr />
+
+<applet 
+  name="yoplet"
+  code="org.lostinthegarden.applet.impl.DefaultFileOperatorImpl.class" 
+  archive="../build/archives/yoplet.jar" 
+  width="600" 
+  height="200">
+  <param name="action" value="sleep"/>
+  <param name="debug" value="true" />
+  <param name="readPath"  value="C:\Documents and Settings\Thomas\Mes documents\Yoplet read.txt " />
+  <param name="writePath" value="C:\Documents and Settings\Thomas\Mes documents\Yoplet write.txt" />
+  <param name="watchPath" value="C:\Documents and Settings\Thomas\Mes documents\Yoplet watch.txt" />
+  <param name="url" value="http://erwan.legoulven.free.fr/index.php" />
+  <param name="content" value="Another content" />
+</applet>
+
+<h2>Applet creation via Javascript</h2>
+
+<p>Here, the applet element is dynamically created with a Javascript helper object named <tt>Yoplet</tt>.
+Clicking on a button will ask <tt>Yoplet</tt> to create a <tt>&lt;applet&gt;</tt> element, 
+with appropriate parameters, then trigger the action by attaching the element to the DOM.
+depending on <tt>action</tt> parameter value. If you click to another action button,
+<tt>Yoplet</tt> will remove the former <tt>&lt;applet&gt;</tt> and will create a new one</p>
+
+<script type="text/javascript">
+
+var YopletCreator = {
+  options : {
+    parentElement: "js-applet"
+  },
+  
+  attributes: {
+    code: "org.lostinthegarden.applet.impl.DefaultFileOperatorImpl.class",
+    archive: "../build/archives/yoplet.jar",
+    width: "600",
+    height: "200"    
+  },
+  
+  parameters: {
+    watchPath: "C:\\Documents and Settings\\Thomas\\Mes documents\\Yoplet watch.txt",
+    writePath: "C:\\Documents and Settings\\Thomas\\Mes documents\\Yoplet write.txt",
+    content: "A small test content",
+    url: "http://erwan.legoulven.free.fr/index.php",
+    debug: "true"
+  },
+  
+  appletElement: null, 
+  
+  createAppletElement: function() {
+    var parentElement = document.getElementById(this.options.parentElement);
+     
+    // Remove element if exist
+    if (this.appletElement) {
+      this.appletElement.parentNode.removeChild(this.appletElement);
+    }
+    
+    // Create an applet element
+    this.appletElement = document.createElement("applet");
+
+    // Add attributes
+    for (attribute in this.attributes) {
+      this.appletElement.setAttribute(attribute, this.attributes[attribute]);
+    }
+    
+    // Add parameters
+    for (parameter in this.parameters) {
+      var paramElement = document.createElement("param");
+      paramElement.setAttribute("name", parameter);
+      paramElement.setAttribute("value", this.parameters[parameter]);
+      this.appletElement.appendChild(paramElement);
+    }
+    
+    // Final append to parent element when applet element is complete
+    parentElement.appendChild(this.appletElement);
+  },
+  
+  read: function() {
+    this.parameters.action = "read";
+    this.createAppletElement(document.body);
+  },
+  
+  write: function() {
+    this.parameters.action = "write";
+    this.createAppletElement(document.body);
+  },
+  
+  watch: function() {
+    this.parameters.action = "watch";
+    this.createAppletElement(document.body);
+  }
+}
+
+</script>
+
+<button onclick="YopletCreator.read()">Read with Yoplet</button>
+<button onclick="YopletCreator.write()">Write with Yoplet</button>
+<button onclick="YopletCreator.watch()">Watch with Yoplet</button>
+
+<div id="js-applet" ></div>
+
 </body>
 </html>

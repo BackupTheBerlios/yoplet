@@ -23,13 +23,47 @@ public class DefaultFileOperatorImpl extends JApplet implements FileOperator {
 	private String       action	= null;
 
 	private File         readFile	= null;
-	private File         writeFile = null;
-	private File         watchFile = null;
+	private File         writeFile 	= null;
+	private File         watchFile 	= null;
 	
 	private String       url		= null;
     private boolean     debug		= false;
-    private Outputable   output	= null;
+    private Outputable   output		= null;
     private String       content	= null;
+
+    // javascript handle props
+    private boolean jReadCall		= false;
+    private boolean jWriteCall		= false;
+    private boolean jWatchCall		= false;    
+    
+    Thread javascriptListener = new Thread() {
+
+	  public void run() {
+	
+	    while (true) {
+	
+	    	if (jReadCall) {
+	    		jReadCall = false;
+	    		readFile();
+		    }
+	    	else if (jWriteCall) {
+	    		jWriteCall = false;
+	    		writeFile();
+	    	}
+	    	else if (jWatchCall) {
+	    		jWatchCall = false;
+	    		watchFile();
+	    	}
+		    try {
+		    	sleep(30);
+		    }
+		    catch (Throwable t) {
+		    	t.printStackTrace();
+		    }
+	    }
+	  }
+
+    };
     
     public DefaultFileOperatorImpl() {
         super();
@@ -104,6 +138,10 @@ public class DefaultFileOperatorImpl extends JApplet implements FileOperator {
      * Read Operation 
      */
     public void performRead() {
+    	this.jReadCall = true;
+    }
+    
+    private void readFile() {
         this.trace("Reading");
         try {
         	this.assertNotNull(this.readFile, "Read local path undefined");
@@ -115,13 +153,21 @@ public class DefaultFileOperatorImpl extends JApplet implements FileOperator {
             
 		}
         finally {
-        }
+        }    	
     }
 
     /**
      * Write operation
      */
     public void performWrite() {
+    	jWriteCall = true;
+    }
+    
+    
+    /**
+     * 
+     */
+    private void writeFile() {
         this.trace(this.content, "Writing");
 
         PrintWriter writer = null;
@@ -141,10 +187,15 @@ public class DefaultFileOperatorImpl extends JApplet implements FileOperator {
                 writer.flush();
                 writer.close();
             }
-        }
+        }    	
     }
-
+    
+    
 	public void performWatch() {
+		this.jWatchCall = true;
+	}
+	
+	private void watchFile(){
         this.trace("Watching");
         String line = null;
         try {
@@ -165,8 +216,8 @@ public class DefaultFileOperatorImpl extends JApplet implements FileOperator {
         } 
         catch (Exception e) {
             this.trace("Warning: " + e.getMessage());
-        } 
-	}    
+        }		
+	}
         
     public void init() {
         super.init();
@@ -188,6 +239,10 @@ public class DefaultFileOperatorImpl extends JApplet implements FileOperator {
         this.debug = new Boolean(getParameter(FileOperator.DEBUG)).booleanValue();
         this.url = getParameter(FileOperator.URL);
         this.content = getParameter(FileOperator.CONTENT);
+        
+        if (null != this.javascriptListener) {
+        		this.javascriptListener.start();
+        }
     }
     
     

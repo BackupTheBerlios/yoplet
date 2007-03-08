@@ -7,12 +7,13 @@ public class Watcher extends Thread {
 	private File path = null;
 	private Object notified = null;
 	private long sleep = 1000l;
+	private Object watcherReturn = null;
 	
 	public Watcher(File path,Object notify,long sleepMillisec) {
 		super();
-		System.out.println("Watcher init with " + path.getAbsolutePath());
 		this.path = path;
 		this.notified = notify;
+		this.sleep = sleepMillisec;
 	}
 	
 	public void run() {
@@ -23,6 +24,7 @@ public class Watcher extends Thread {
  		    	{
  		    		synchronized (this.notified) {
  		    			this.notified.notify();
+ 		    			this.watcherReturn = "OK";
  		    			break;
  		    		}
  		    	}
@@ -34,4 +36,7 @@ public class Watcher extends Thread {
   	    }
 	}
 
+	public Object getWatcherReturn() {
+		return watcherReturn;
+	}
 }

@@ -200,11 +200,20 @@ public class Yoplet extends JApplet implements FileOperator {
     
 	public void performWatch() {
 		this.jWatchCall = true;
+		while (true) {
+			if (null != this.watcher.getWatcherReturn()) break;
+			try {
+				Thread.sleep(2000);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		trace(this.watcher.getWatcherReturn().toString());
 	}
 	
 	private void watchFile(){
         this.trace("Watching");
-        if (null == this.watcher) this.watcher = new Watcher(this.watchFile,this,2000);
+        System.out.println("Watcher initialized " + (null == this.watcher));
         this.watcher.start();
         while (true) {
         	try

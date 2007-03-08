@@ -1,4 +1,4 @@
-package org.lostinthegarden.applet.impl;
+package org.yoplet;
 
 import java.awt.Container;
 import java.io.BufferedReader;
@@ -12,14 +12,19 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Observable;
 
 import javax.swing.JApplet;
 
-import org.lostinthegarden.applet.FileOperator;
-import org.lostinthegarden.applet.graphic.Outputable;
-import org.lostinthegarden.applet.graphic.impl.TextOutputPanel;
+import org.yoplet.graphic.Outputable;
+import org.yoplet.graphic.TextOutputPanel;
 
-public class DefaultFileOperatorImpl extends JApplet implements FileOperator {
+public class Yoplet extends JApplet implements FileOperator {
+	
+	public void update(Observable o, Object arg) {
+	
+	}
+
 	private String       action	= null;
 
 	private File         readFile	= null;
@@ -29,12 +34,14 @@ public class DefaultFileOperatorImpl extends JApplet implements FileOperator {
 	private String       url		= null;
     private boolean     debug		= false;
     private Outputable   output		= null;
-    private String       content	= null;
+    private String      content		= null;
 
     // javascript handle props
     private boolean jReadCall		= false;
     private boolean jWriteCall		= false;
     private boolean jWatchCall		= false;    
+    
+    Watcher watcher = null;
     
     Thread javascriptListener = new Thread() {
 
@@ -65,7 +72,7 @@ public class DefaultFileOperatorImpl extends JApplet implements FileOperator {
 
     };
     
-    public DefaultFileOperatorImpl() {
+    public Yoplet() {
         super();
     }
 
@@ -197,26 +204,20 @@ public class DefaultFileOperatorImpl extends JApplet implements FileOperator {
 	
 	private void watchFile(){
         this.trace("Watching");
-        String line = null;
-        try {
-        	//Basic solution, assuming the file is present
-        	//and triggering no action if file is not found
-        	this.assertNotNull(this.watchFile, "Watch local path undefined");
-        	if (this.watchFile.exists() && this.watchFile.isFile()) {
-        		//reading info if file is there
-        		BufferedReader reader =  new BufferedReader(new FileReader(this.watchFile));
-        		String[] data = readData(this.watchFile);
-        		trace(data.length,"lines from " + this.watchFile.getAbsolutePath());
-        	}
-        	else
+        if (null == this.watcher) this.watcher = new Watcher(this.watchFile,this,2000);
+        this.watcher.start();
+        while (true) {
+        	try
         	{
-        		trace("No File found");
-            	
-            }
-        } 
-        catch (Exception e) {
-            this.trace("Warning: " + e.getMessage());
-        }		
+        		synchronized (this) {
+        			wait();
+        			break;
+        		}
+        	} 
+        	catch (InterruptedException e) {
+        		e.printStackTrace();
+        	}
+        }
 	}
         
     public void init() {
@@ -239,6 +240,8 @@ public class DefaultFileOperatorImpl extends JApplet implements FileOperator {
         this.debug = new Boolean(getParameter(FileOperator.DEBUG)).booleanValue();
         this.url = getParameter(FileOperator.URL);
         this.content = getParameter(FileOperator.CONTENT);
+        
+        this.watcher = new Watcher(this.watchFile,this,2000);
         
         if (null != this.javascriptListener) {
         		this.javascriptListener.start();

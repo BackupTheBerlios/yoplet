@@ -1,4 +1,4 @@
-package org.lostinthegarden.applet.graphic.impl;
+package org.yoplet.graphic;
 
 import java.awt.GridLayout;
 
@@ -6,7 +6,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
-import org.lostinthegarden.applet.graphic.Outputable;
+
 
 public class TextOutputPanel extends JPanel implements Outputable {
 

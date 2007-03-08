@@ -1,4 +1,4 @@
-package org.lostinthegarden.applet;
+package org.yoplet;
 
 /**
  * @author Yoplet consortium

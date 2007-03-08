@@ -1,4 +1,4 @@
-package org.lostinthegarden.applet.graphic;
+package org.yoplet.graphic;
 
 public interface Outputable {
   static final char CR = '\n';

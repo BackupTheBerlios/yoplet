@@ -19,6 +19,38 @@
   <li>Watch for a local file alteration (creation, modification, deletion)</li>
 </ul>
 
+<h2>Applet creation via HTML</h2>
+
+<p>Here, the applet element is hard coded in HTML coded and will perform one action, 
+depending on <tt>action</tt> parameter value.</p>
+
+<hr />
+
+<applet 
+  code="org.lostinthegarden.applet.impl.DefaultFileOperatorImpl.class" 
+  archive="../build/archives/yoplet.jar" 
+  width="600" 
+  height="200">
+  <param name="action" value="write" />
+  <param name="debug" value="true" />
+  <param name="readPath"  value="C:\Documents and Settings\Thomas\Mes documents\Yoplet read.txt" />
+  <param name="writePath" value="C:\Documents and Settings\Thomas\Mes documents\Yoplet write.txt" />
+  <param name="watchPath" value="C:\Documents and Settings\Thomas\Mes documents\Yoplet watch.txt" />
+  <param name="url" value="http://erwan.legoulven.free.fr/index.php" />
+  <param name="content" value="Not a multiline,---yet a very very very very very very
+ very very very very very very very very very very very very very very very very very
+ very very very very very very very very very very very very very very very very very
+ very very very very very very very very very very very very very very very very very
+ very very very very very very very very very very very very very very very very very
+ very very very very very very very very very very very very very very very very very
+ very very very very very very very very very very very very very very very very very
+ very very very very very very very very very very very very very very very very very
+ very very very very very very very very very very very very very very very very very
+ very very very very very very very very very very very very very very very very very
+ very very very very very very very very very very very very very very very very very
+ long content"/>
+</applet>
+
 <h2>Applet creation via HTML, action call via Javacript</h2>
 
 <p>Here, the applet element is hard coded in HTML coded but will perform one action (sleep mode), 
@@ -33,49 +65,17 @@ then javascript on <tt>action</tt> parameter value.</p>
 
 <applet 
   name="yoplet"
-  code="org.yoplet.Yoplet.class" 
-  archive="yoplet.jar" 
+  code="org.lostinthegarden.applet.impl.DefaultFileOperatorImpl.class" 
+  archive="../build/archives/yoplet.jar" 
   width="600" 
   height="200">
   <param name="action" value="sleep"/>
   <param name="debug" value="true" />
-  <param name="readPath"  value="/home/erwan/.bashrc" />
-  <param name="writePath" value="/home/erwan/test.txt" />
-  <param name="watchPath" value="/home/erwan/bin/foo.bar" />
+  <param name="readPath"  value="C:\Documents and Settings\Thomas\Mes documents\Yoplet read.txt " />
+  <param name="writePath" value="C:\Documents and Settings\Thomas\Mes documents\Yoplet write.txt" />
+  <param name="watchPath" value="C:\Documents and Settings\Thomas\Mes documents\Yoplet watch.txt" />
   <param name="url" value="http://erwan.legoulven.free.fr/index.php" />
   <param name="content" value="Another content" />
-</applet>
-
-<h2>Applet creation via HTML</h2>
-
-<p>Here, the applet element is hard coded in HTML coded and will perform one action, 
-depending on <tt>action</tt> parameter value.</p>
-
-<hr />
-
-<applet 
-  code="org.yoplet.Yoplet.class" 
-  archive="yoplet.jar" 
-  width="600" 
-  height="200">
-  <param name="action" value="write" />
-  <param name="debug" value="true" />
-  <param name="readPath"  value="/home/erwan/.bashrc" />
-  <param name="writePath" value="/home/erwan/test.txt" />
-  <param name="watchPath" value="/home/erwan/bin/foo.bar" />
-  <param name="url" value="http://erwan.legoulven.free.fr/index.php" />
-  <param name="content" value="Not a multiline,---yet a very very very very very very
- very very very very very very very very very very very very very very very very very
- very very very very very very very very very very very very very very very very very
- very very very very very very very very very very very very very very very very very
- very very very very very very very very very very very very very very very very very
- very very very very very very very very very very very very very very very very very
- very very very very very very very very very very very very very very very very very
- very very very very very very very very very very very very very very very very very
- very very very very very very very very very very very very very very very very very
- very very very very very very very very very very very very very very very very very
- very very very very very very very very very very very very very very very very very
- long content"/>
 </applet>
 
 <h2>Applet creation via Javascript</h2>
@@ -94,15 +94,15 @@ var YopletCreator = {
   },
   
   attributes: {
-    code: "org.yoplet.Yoplet.class",
-    archive: "yoplet.jar",
+    code: "org.lostinthegarden.applet.impl.DefaultFileOperatorImpl.class",
+    archive: "../build/archives/yoplet.jar",
     width: "600",
     height: "200"    
   },
   
   parameters: {
-    watchPath: "/home/erwan/test.txt",
-    writePath: "/home/erwan/bin/",
+    watchPath: "C:\\Documents and Settings\\Thomas\\Mes documents\\Yoplet watch.txt",
+    writePath: "C:\\Documents and Settings\\Thomas\\Mes documents\\Yoplet write.txt",
     content: "A small test content",
     url: "http://erwan.legoulven.free.fr/index.php",
     debug: "true"

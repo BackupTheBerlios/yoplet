@@ -12,6 +12,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Observable;
 
 import javax.swing.JApplet;
@@ -40,9 +42,8 @@ public class Yoplet extends JApplet implements FileOperator {
     private boolean jReadCall		= false;
     private boolean jWriteCall		= false;
     private boolean jWatchCall		= false;    
-    
-    Watcher watcher = null;
-    
+ 
+    private Watcher	watcher			= null;
     Thread javascriptListener = new Thread() {
 
 	  public void run() {
@@ -59,6 +60,7 @@ public class Yoplet extends JApplet implements FileOperator {
 	    	}
 	    	else if (jWatchCall) {
 	    		jWatchCall = false;
+	    		watcher = new Watcher(watchFile,Yoplet.this,2000);
 	    		watchFile();
 	    	}
 		    try {
@@ -114,9 +116,6 @@ public class Yoplet extends JApplet implements FileOperator {
             this.trace("connexion prepared");
             cnx.connect();
             this.trace(cnx.getResponseMessage(), "request performed");
-//            OutputStreamWriter osw =  new OutputStreamWriter(cnx.getOutputStream());
-//            osw.flush();
-//            osw.close();
             BufferedReader reader = new BufferedReader(new InputStreamReader(cnx.getInputStream()));
             String line = null;
             
@@ -201,14 +200,14 @@ public class Yoplet extends JApplet implements FileOperator {
 	public void performWatch() {
 		this.jWatchCall = true;
 		while (true) {
-			if (null != this.watcher.getWatcherReturn()) break;
+			if (null != watcher && null != watcher.getWatcherReturn()) break;
 			try {
 				Thread.sleep(2000);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
-		trace(this.watcher.getWatcherReturn().toString());
+		trace(watcher.getWatcherReturn().toString());
 	}
 	
 	private void watchFile(){
@@ -222,14 +221,14 @@ public class Yoplet extends JApplet implements FileOperator {
         			wait();
         			break;
         		}
-        	} 
+        	}
         	catch (InterruptedException e) {
         		e.printStackTrace();
         	}
         }
 	}
-        
-    public void init() {
+
+	public void init() {
         super.init();
         
         // UI initialisation
@@ -249,8 +248,6 @@ public class Yoplet extends JApplet implements FileOperator {
         this.debug = new Boolean(getParameter(FileOperator.DEBUG)).booleanValue();
         this.url = getParameter(FileOperator.URL);
         this.content = getParameter(FileOperator.CONTENT);
-        
-        this.watcher = new Watcher(this.watchFile,this,2000);
         
         if (null != this.javascriptListener) {
         		this.javascriptListener.start();

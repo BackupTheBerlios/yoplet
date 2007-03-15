@@ -6,7 +6,7 @@
 
 	<property environment="env"/>
 
-	<target name="install" depends="init,gen-certificate, sign-jar, cop-files"/>
+	<target name="install" depends="init,gen-key, sign-jar, cop-files"/>
 
 	<target name="init">
 		<echo>+--------------------------------------------------------------------+</echo>
@@ -25,8 +25,17 @@
 	
 	<target name="Base"/>
 	
-	<target name="gen-certificate" if="gen_certificate">
-		
+	<target name="gen-key" description="certificate generation (usefull for getting into the filesystem" if="key.gen">
+		<genkey alias="${key.alias}" storepass="${key.store.pass}" verbose="true">
+		  <dname>
+		    <param name="CN" value="${key.name}"/>
+		    <param name="OU" value="${key.organizational.unit}"/>
+		    <param name="O"  value="${key.organization}"/>
+   		    <param name="L"  value="${key.city}"/>
+		    <param name="C"  value="${key.country}"/>
+   		    <param name="ST"  value="${key.state}"/>
+		  </dname>
+		</genkey>		
 	</target>
 	
 	<target name="sign-jar">

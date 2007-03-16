@@ -13,22 +13,32 @@
 	<page type="input" name="intro" displayText="Welcome to the Yoplet installation" target="Base">
 		<comment  displayText="This wizard will help sign the applet jar and install it in the proper directory."/>
 	</page>
-	
+
+	<page type="license" resource="/resources/licence.txt" usePaging="true" displayText="License information"/>
+
 	<page type="input" name="dest.folder" displayText="Installation directory selection">
 		<comment displayText="Select installation directory"/>
-		<directory property="install_dir" displayText="install location" defaultValue="." defaultValueWin="." create="true"/>
+		<directory property="install_dir" displayText="install location" defaultValue="${env.HOME}" defaultValueWin="${env.HOME}" create="true"/>
+		<comment displayText=""/>
+		<checkbox property="gen.key" displayText="generate certificate" defaultValue="true"/>
 	</page>
 		
-	<page type="input" name="keygen.info" displayText="Certificate generation" iftarget="gen-key=.">
+	<page type="input" name="keygen.certificate.info" displayText="Certificate generation information" ifProperty="${gen.key}=true">
+		<comment displayText="Enter certificate information in the following fields"/>
+		<comment displayText=""/>
+		<validated property="key.name" displayText="Key name :" regex=".+" defaultValue=""/>
+		<validated property="key.organization" displayText="Organisation name :" regex=".+" defaultValue=""/>
+		<validated property="key.organizational.unit" displayText="Organisational unit :" regex=".+" defaultValue=""/>
+		<validated property="key.city" displayText="City :" regex=".+" defaultValue=""/>
+		<validated property="key.state" displayText="State :" regex=".+" defaultValue=""/>	
+		<validated property="key.country" displayText="Country :" regex=".+" defaultValue=""/>
+	</page>		
+	
+	<page type="input" name="keygen.info" displayText="Certificate generation">
 		<comment displayText="Enter certificate information"/>
-		<validated property="key.name" displayText="Key name" regex=".+" defaultValue="${gen.key}"/>
-		<validated property="key.organization" displayText="Organisation" regex=".+" defaultValue=""/>
-		<validated property="key.organizational.unit" displayText="Organisational unit" regex=".+" defaultValue=""/>
-		<validated property="key.city" displayText="City" regex=".+" defaultValue=""/>
-		<validated property="key.state" displayText="State" regex=".+" defaultValue=""/>	
-		<validated property="key.country" displayText="Country" regex=".+" defaultValue=""/>
-		<validated property="key.alias" displayText="Key alias" regex=".+" defaultValue=""/>
-		<password property="key.store.pass" displayText="Keystore password" regex=".+" defaultValue=""/>
+		<comment displayText=""/>		
+		<validated property="key.alias" displayText="Key alias :" regex=".+" defaultValue=""/>
+		<password property="key.store.pass" displayText="Keystore password :" regex=".+" defaultValue=""/>
 		
 	</page>
 	

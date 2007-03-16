@@ -149,7 +149,7 @@
 			validateConfig="true"
 			failOnError="true"
 			icons="bluecurve">
-				<fileset dir="src/install-process/antinstall/resources"/>
+				<fileset dir="src/install-process/antinstall/" includes="**/resources/*"/>
 				<fileset dir="build/installer"/>
 		</installer>
 	</target>

@@ -6,7 +6,7 @@
 
 	<property environment="env"/>
 
-	<target name="install" depends="init,gen-key, sign-jar, cop-files"/>
+	<target name="install" depends="init, gen-key, sign-jar, cop-files"/>
 
 	<target name="init">
 		<echo>+--------------------------------------------------------------------+</echo>
@@ -25,7 +25,7 @@
 	
 	<target name="Base"/>
 	
-	<target name="gen-key" description="certificate generation (usefull for getting into the filesystem" if="key.gen">
+	<target name="gen-key" description="certificate generation (usefull for getting into the filesystem" if="key.gen" depends="del-key">
 		<genkey alias="${key.alias}" storepass="${key.store.pass}" verbose="true">
 		  <dname>
 		    <param name="CN" value="${key.name}"/>
@@ -39,10 +39,18 @@
 	</target>
 	
 	<target name="sign-jar">
+		<signjar jar="${base_dir}/lib/yoplet.jar" alias="${key.alias}" storepass="${key.store.pass}" verbose="true"/>
+	</target>
 	
+	<target name="del-key" description="key certificate deletion">
+		<property name="exec" location="${env.JAVA_HOME}/bin/keytool"/>
+		<exec executable="${exec}">
+			<arg line="-delete -alias ${key.alias} -storepass ${key.store.pass}"/>
+		</exec>
 	</target>
 	
 	<target name="cop-files">
 		<copy file="${basedir}/lib/yoplet.jar" todir="${install_dir}"/>
 	</target>
+	
 </project>

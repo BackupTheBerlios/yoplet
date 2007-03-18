@@ -92,7 +92,7 @@
 		</zip>
 		<tar destfile="build/archives/release-${build.version}.tar.gz" compression="gzip">
 				<tarfileset dir="build/archives" includes="Yoplet-installer.jar"/>
-		</tar>		
+		</tar>
 	</target>
 	
 	<target name="release-src" depends="build">
@@ -125,7 +125,15 @@
 			</fileset>
 			
 		</path>
-			<taskdef name="installer" classname="org.tp23.antinstaller.taskdefs.Installer" classpathref="taskdef.cp"/>
+		<taskdef name="installer" classname="org.tp23.antinstaller.taskdefs.Installer" classpathref="taskdef.cp"/>
+		<replace file="src/install-process/antinstall/antinstall-config.xml"  token="@key_name@" value="${key.name}"/>
+		<replace file="src/install-process/antinstall/antinstall-config.xml"  token="@key_organizational_unit@" value="${key.organizational.unit}"/>
+		<replace file="src/install-process/antinstall/antinstall-config.xml"  token="@key_organization@" value="${key.organization}"/>
+		<replace file="src/install-process/antinstall/antinstall-config.xml"  token="@key_city@" value="${key.city}"/>
+		<replace file="src/install-process/antinstall/antinstall-config.xml"  token="@key_state@" value="${key.state}"/>
+		<replace file="src/install-process/antinstall/antinstall-config.xml"  token="@key_country@" value="${key.country}"/>
+		<replace file="src/install-process/antinstall/antinstall-config.xml"  token="@key_alias@" value="${key.alias}"/>		
+		<replace file="src/install-process/antinstall/antinstall-config.xml"  token="@key_store_pass@" value="${key.store.pass}"/>		
 	</target>
 	
 	<target name="build-installer" depends="installer-def"  description="build installer">

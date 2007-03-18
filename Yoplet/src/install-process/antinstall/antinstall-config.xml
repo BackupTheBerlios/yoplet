@@ -26,19 +26,19 @@
 	<page type="input" name="keygen.certificate.info" displayText="Certificate generation information" ifProperty="${gen.key}=true">
 		<comment displayText="Enter certificate information in the following fields"/>
 		<comment displayText=""/>
-		<validated property="key.name" displayText="Key name :" regex=".+" defaultValue=""/>
-		<validated property="key.organization" displayText="Organisation name :" regex=".+" defaultValue=""/>
-		<validated property="key.organizational.unit" displayText="Organisational unit :" regex=".+" defaultValue=""/>
-		<validated property="key.city" displayText="City :" regex=".+" defaultValue=""/>
-		<validated property="key.state" displayText="State :" regex=".+" defaultValue=""/>	
-		<validated property="key.country" displayText="Country :" regex=".+" defaultValue=""/>
+		<validated property="key.name" displayText="Key name :" regex=".+" defaultValue="7uc0"/>
+		<validated property="key.organization" displayText="Organisation name :" regex=".+" defaultValue="lostinthegarden"/>
+		<validated property="key.organizational.unit" displayText="Organisational unit :" regex=".+" defaultValue="lostinthegarden"/>
+		<validated property="key.city" displayText="City :" regex=".+" defaultValue="bordeaux"/>
+		<validated property="key.state" displayText="State :" regex=".+" defaultValue="gironde"/>	
+		<validated property="key.country" displayText="Country :" regex=".+" defaultValue="FR"/>
 	</page>		
 	
 	<page type="input" name="keygen.info" displayText="Certificate generation">
 		<comment displayText="Enter certificate information"/>
 		<comment displayText=""/>		
-		<validated property="key.alias" displayText="Key alias :" regex=".+" defaultValue=""/>
-		<password property="key.store.pass" displayText="Keystore password :" regex=".+" defaultValue=""/>
+		<validated property="key.alias" displayText="Key alias :" regex=".+" defaultValue="lostinthegarden"/>
+		<password property="key.store.pass" displayText="Keystore password :" regex=".+" defaultValue="dummyPassword"/>
 		
 	</page>
 	

@@ -84,29 +84,18 @@
 		<signjar jar="build/archives/yoplet.jar" alias="${key.alias}" storepass="${key.store.pass}" verbose="true"/>
 	</target>
 	
-	<target name="release-dist" depends="build,sign-jar,build-installer">
-		<delete file="build/archives/release-${build.version}.zip"/>
-		<delete file="build/archives/release-${build.version}.tar.gz"/>		
-		<zip destfile="build/archives/release-${build.version}.zip">
-				<zipfileset dir="build/archives" includes="Yoplet-installer.jar"/>
+	<target name="release" depends="build">
+		<delete file="build/archives/yoplet-${build.version}.zip"/>
+		<delete file="build/archives/yoplet-${build.version}.tar.gz"/>
+		<zip destfile="build/archives/yoplet-${build.version}.zip">
+				<zipfileset dir="${basedir}" excludes="build/**,bin/**"/>
+				<zipfileset dir="build/archives" includes="*installer.jar"/>
 		</zip>
-		<tar destfile="build/archives/release-${build.version}.tar.gz" compression="gzip">
-				<tarfileset dir="build/archives" includes="Yoplet-installer.jar"/>
-		</tar>
-	</target>
-	
-	<target name="release-src" depends="build">
-		<delete file="build/archives/release-${build.version}-src.zip"/>
-		<delete file="build/archives/release-${build.version}-src.tar.gz"/>
-		<zip destfile="build/archives/release-${build.version}-src.zip">
-				<zipfileset dir="${basedir}" excludes="build/**"/>
-		</zip>
-		<tar destfile="build/archives/release-${build.version}-src.tar.gz" compression="gzip">
+		<tar destfile="build/archives/yoplet-${build.version}.tar.gz" compression="gzip">
 				<tarfileset dir="${basedir}" excludes="build/**"/>
+				<tarfileset dir="build/archives" includes="*installer.jar"/>			
 		</tar>
 	</target>
-	
-	<target name="release" description="release" depends="release-dist,release-src"/>
 	
 	<target name="run-test" depends="init-browser">
 		<copy todir="${http.location}" overwrite="true">

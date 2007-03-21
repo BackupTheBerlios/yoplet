@@ -18,7 +18,7 @@
 
 	<page type="input" name="dest.folder" displayText="Installation directory selection">
 		<comment displayText="Select installation directory"/>
-		<directory property="install_dir" displayText="install location" defaultValue="${env.HOME}" defaultValueWin="${env.HOME}" create="true"/>
+		<directory property="install_dir" displayText="install location" defaultValue="${java.user.home}" defaultValueWin="${java.user.home}" create="true"/>
 		<comment displayText=""/>
 		<checkbox property="gen.key" displayText="generate certificate" defaultValue="true"/>
 	</page>

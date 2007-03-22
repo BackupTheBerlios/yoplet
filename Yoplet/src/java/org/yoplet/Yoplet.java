@@ -22,55 +22,56 @@ import org.yoplet.graphic.Outputable;
 import org.yoplet.graphic.TextOutputPanel;
 
 public class Yoplet extends JApplet implements FileOperator {
-	
-	public void update(Observable o, Object arg) {
-	
-	}
+    
+    public void update(Observable o, Object arg) {
+    
+    }
 
-	private String       action	= null;
+    private String     action = null;
 
-	private File         readFile	= null;
-	private File         writeFile 	= null;
-	private File         watchFile 	= null;
-	
-	private String       url		= null;
-    private boolean     debug		= false;
-    private Outputable   output		= null;
-    private String      content		= null;
+    private File       file = null;
+    private File       flag = null;
+    
+    private String     content    = null;
+    private String     lineSeparator = null;
+
+    private String     url        = null;
+    private boolean   debug    = false;
+    private Outputable output    = null;
 
     // javascript handle props
-    private boolean jReadCall		= false;
-    private boolean jWriteCall		= false;
-    private boolean jWatchCall		= false;    
+    private boolean jReadCall  = false;
+    private boolean jWriteCall = false;
+    private boolean jWatchCall = false;    
  
-    private Watcher	watcher			= null;
+    private Watcher  watcher = null;
     Thread javascriptListener = new Thread() {
 
-	  public void run() {
-	
-	    while (true) {
-	
-	    	if (jReadCall) {
-	    		jReadCall = false;
-	    		readFile();
-		    }
-	    	else if (jWriteCall) {
-	    		jWriteCall = false;
-	    		writeFile();
-	    	}
-	    	else if (jWatchCall) {
-	    		jWatchCall = false;
-	    		watcher = new Watcher(watchFile,Yoplet.this,2000);
-	    		watchFile();
-	    	}
-		    try {
-		    	sleep(30);
-		    }
-		    catch (Throwable t) {
-		    	t.printStackTrace();
-		    }
-	    }
-	  }
+      public void run() {
+    
+        while (true) {
+    
+            if (jReadCall) {
+                jReadCall = false;
+                readFile();
+            }
+            else if (jWriteCall) {
+                jWriteCall = false;
+                writeFile();
+            }
+            else if (jWatchCall) {
+                jWatchCall = false;
+                watcher = new Watcher(file,Yoplet.this,2000);
+                watchFile();
+            }
+            try {
+                sleep(30);
+            }
+            catch (Throwable t) {
+                t.printStackTrace();
+            }
+        }
+      }
 
     };
     
@@ -79,19 +80,21 @@ public class Yoplet extends JApplet implements FileOperator {
     }
 
     private void assertNotNull(Object object, String comment) throws Exception {
-    	if (null == object) {
-    		throw new Exception(comment);
-    	}
+        if (null == object) {
+            throw new Exception(comment);
+        }
     }
     
-    private String[] readData(File in) throws Exception{
-    	String line = null;
-    	Collection lines = new ArrayList();
-		BufferedReader reader =  new BufferedReader(new FileReader(this.watchFile));
-		while ((line = reader.readLine()) != null) {
-			lines.add(line);
-		}
-    	return (String[])lines.toArray(new String[]{});
+    private void readData(File in) throws Exception{
+        String line = null;
+        this.content = "";
+//        Collection lines = new ArrayList();
+        BufferedReader reader =  new BufferedReader(new FileReader(this.file));
+        while ((line = reader.readLine()) != null) {
+        	this.content += line + this.lineSeparator;
+//        	lines.add(line);
+        }
+//        return (String[]) lines.toArray(new String[]{});
     }
     
     /**
@@ -100,8 +103,9 @@ public class Yoplet extends JApplet implements FileOperator {
      * @return corresponding File
      */
     private File createParamFile(String paramPath) {
-    	String path = getParameter(paramPath);
-		return  path != null ? new File(path) : null;
+        String path = getParameter(paramPath);
+        this.trace(path, "File for " + paramPath);
+        return  path != null ? new File(path) : null;
     }
     
     /**
@@ -121,7 +125,7 @@ public class Yoplet extends JApplet implements FileOperator {
             
             int i = 0;
             while ((line = reader.readLine()) != null) {
-            i++;
+              i++;
             }
             reader.close();
             this.trace(i, "Lines Read");
@@ -144,29 +148,31 @@ public class Yoplet extends JApplet implements FileOperator {
      * Read Operation 
      */
     public void performRead() {
-    	this.jReadCall = true;
+        this.jReadCall = true;
     }
     
     private void readFile() {
         this.trace("Reading");
         try {
-        	this.assertNotNull(this.readFile, "Read local path undefined");
-            this.trace(this.readFile.getAbsolutePath(), "From local path");
-            String[] data = readData(this.readFile);
-		} 
+            this.assertNotNull(this.file, "Read local path undefined");
+            this.trace(this.file.getAbsolutePath(), "From local path");
+            this.readData(this.file);
+            this.trace(this.content, "Content Read");
+        } 
         catch (Exception e) {
             this.trace("Warning: " + e.getMessage());
             
-		}
+        }
         finally {
-        }    	
+        }
     }
 
     /**
      * Write operation
      */
-    public void performWrite() {
-    	jWriteCall = true;
+    public void performWrite(String content) {
+    	this.content = content;
+        this.jWriteCall = true;
     }
     
     
@@ -178,12 +184,28 @@ public class Yoplet extends JApplet implements FileOperator {
 
         PrintWriter writer = null;
         try {
-        	this.assertNotNull(this.writeFile, "Write local path undefined");
-            this.trace(this.writeFile.getAbsolutePath(), "To local path");
-            this.writeFile.createNewFile();
-            writer = new PrintWriter(new BufferedWriter(new FileWriter(this.writeFile)));
-			writer.print(this.content);
+        	// Write the file
+            this.assertNotNull(this.file, "Write local path undefined");
+            this.trace(this.file.getAbsolutePath(), "To local path");
+            this.file.createNewFile();
+            writer = new PrintWriter(new BufferedWriter(new FileWriter(this.file)));
 
+            // Print lines
+            if (null != this.lineSeparator) {
+                String[] lines = this.content.split(this.lineSeparator);
+                for (int i = 0; i < lines.length;i++) {
+                    writer.println(lines[i]);
+                }
+            }
+            else {
+                writer.println(this.content);
+            }
+            
+            // Create a flag file if necessary
+            if (null != this.flag) {
+                this.flag.createNewFile();
+            }
+            
         } 
         catch (Exception e) {
             this.trace("Warning: " + e.getMessage());
@@ -193,42 +215,42 @@ public class Yoplet extends JApplet implements FileOperator {
                 writer.flush();
                 writer.close();
             }
-        }    	
+        }        
     }
     
     
-	public void performWatch() {
-		this.jWatchCall = true;
-		while (true) {
-			if (null != watcher && null != watcher.getWatcherReturn()) break;
-			try {
-				Thread.sleep(2000);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		trace(watcher.getWatcherReturn().toString());
-	}
-	
-	private void watchFile(){
+    public void performWatch() {
+        this.jWatchCall = true;
+        while (true) {
+            if (null != watcher && null != watcher.getWatcherReturn()) break;
+            try {
+                Thread.sleep(1000);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        trace(watcher.getWatcherReturn().toString());
+    }
+    
+    private void watchFile(){
         this.trace("Watching");
         System.out.println("Watcher initialized " + (null == this.watcher));
         this.watcher.start();
         while (true) {
-        	try
-        	{
-        		synchronized (this) {
-        			wait();
-        			break;
-        		}
-        	}
-        	catch (InterruptedException e) {
-        		e.printStackTrace();
-        	}
+            try
+            {
+                synchronized (this) {
+                    wait();
+                    break;
+                }
+            }
+            catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
-	}
+    }
 
-	public void init() {
+    public void init() {
         super.init();
         
         // UI initialisation
@@ -239,18 +261,18 @@ public class Yoplet extends JApplet implements FileOperator {
         this.trace("Initiliazing applet");
 
         // Data initialisation
+        this.debug = new Boolean(getParameter(FileOperator.DEBUG)).booleanValue();
         this.action = getParameter(FileOperator.ACTION);
 
-        this.readFile = createParamFile(FileOperator.READ_PATH);
-        this.writeFile = createParamFile(FileOperator.WRITE_PATH);
-        this.watchFile = createParamFile(FileOperator.WATCH_PATH);
+        this.file = createParamFile(FileOperator.FILE_PATH);
+        this.flag = createParamFile(FileOperator.FLAG_PATH);
 
-        this.debug = new Boolean(getParameter(FileOperator.DEBUG)).booleanValue();
         this.url = getParameter(FileOperator.URL);
         this.content = getParameter(FileOperator.CONTENT);
+        this.lineSeparator = getParameter(FileOperator.LINE_SEPERATOR);
         
         if (null != this.javascriptListener) {
-        		this.javascriptListener.start();
+            this.javascriptListener.start();
         }
     }
     
@@ -263,24 +285,24 @@ public class Yoplet extends JApplet implements FileOperator {
             this.trace(this.action, "Action type");
             
             if (this.action.equals(FileOperator.ACTION_READ)) {
-    			this.performRead();
+                this.performRead();
             } 
             
             if (this.action.equals(FileOperator.ACTION_WRITE)) {
                 this.trace("Applet writing");
-    			this.performWrite();
+                this.performWrite(this.content);
             }
             
             if (this.action.equals(FileOperator.ACTION_WATCH)) {
                 this.trace("Applet watching");
-    			this.performWatch();
+                this.performWatch();
             } 
 
             this.trace("Applet now sleeping");
-		} 
+        } 
         catch (Exception e) {
-			// TODO: handle exception
-		}
+            this.trace("Error starting applet: " + e.getMessage());
+        }
 
     }
     
@@ -289,15 +311,15 @@ public class Yoplet extends JApplet implements FileOperator {
         if (this.debug) {
             output.println(">  " + string + "...");
         }
-	}
+    }
 
-	private void trace(int value, String key) {
+    private void trace(int value, String key) {
         if (this.debug) {
             output.println(">>  " + key + " = " + value);
         }
     }
 
-	private void trace(String value, String key) {
+    private void trace(String value, String key) {
         if (this.debug) {
             output.println(">>  " + key + " :");
             output.println(value);

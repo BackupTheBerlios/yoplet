@@ -11,9 +11,9 @@ public interface FileOperator {
 	public final static String ACTION_WRITE = "write";
 	public final static String ACTION_WATCH = "watch";
 
-	public final static String READ_PATH  = "readPath";
-	public final static String WRITE_PATH = "writePath";
-	public final static String WATCH_PATH = "watchPath";
+	public final static String FILE_PATH  = "filePath";
+	public final static String FLAG_PATH  = "flagPath";
+	public final static String LINE_SEPERATOR = "lineSeparator";
 	
 	public final static String DEBUG      = "debug";
 	public final static String URL        = "url";
@@ -27,7 +27,7 @@ public interface FileOperator {
 	/**
 	 * FileOperator will write data to a target write path
 	 */
-	public void performWrite();
+	public void performWrite(String content);
 	
 	/**
 	 * FileOperator will watch for the creation of watch path

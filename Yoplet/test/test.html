@@ -27,53 +27,42 @@ depending on <tt>action</tt> parameter value.</p>
 <hr />
 
 <applet 
-  code="org.lostinthegarden.applet.impl.DefaultFileOperatorImpl.class" 
+  code="org.yoplet.Yoplet.class" 
   archive="../build/archives/yoplet.jar" 
   width="600" 
   height="200">
   <param name="action" value="write" />
   <param name="debug" value="true" />
-  <param name="readPath"  value="C:\Documents and Settings\Thomas\Mes documents\Yoplet read.txt" />
-  <param name="writePath" value="C:\Documents and Settings\Thomas\Mes documents\Yoplet write.txt" />
-  <param name="watchPath" value="C:\Documents and Settings\Thomas\Mes documents\Yoplet watch.txt" />
+  <param name="filePath"  value="C:\Documents and Settings\Thomas\Mes documents\Yoplet file.txt" />
+  <param name="lineSeparator"  value="---" />
   <param name="url" value="http://erwan.legoulven.free.fr/index.php" />
-  <param name="content" value="Not a multiline,---yet a very very very very very very
- very very very very very very very very very very very very very very very very very
- very very very very very very very very very very very very very very very very very
- very very very very very very very very very very very very very very very very very
- very very very very very very very very very very very very very very very very very
- very very very very very very very very very very very very very very very very very
- very very very very very very very very very very very very very very very very very
- very very very very very very very very very very very very very very very very very
- very very very very very very very very very very very very very very very very very
- very very very very very very very very very very very very very very very very very
- very very very very very very very very very very very very very very very very very
- long content"/>
+  <param name="content" value="Yet a multiline content---with a line---and another---and a last one"/>
 </applet>
 
 <h2>Applet creation via HTML, action call via Javacript</h2>
 
 <p>Here, the applet element is hard coded in HTML coded but will perform one action (sleep mode), 
 then javascript on <tt>action</tt> parameter value.</p>
+<p>Javascript calls are synchronous, meaning its thread will start running again after the action
+is actually performed (file read, written or altered);</p>
 
-
-<button onclick="document.yoplet.performRead()">Read with Yoplet</button>
-<button onclick="document.yoplet.performWrite()">Write with Yoplet</button>
-<button onclick="document.yoplet.performWatch()">Watch with Yoplet</button>
+<button onclick="document.yoplet.performRead (); alert('File read   ' + document.yoplet.getContent());">Read with Yoplet</button>
+<button onclick="document.yoplet.performWrite('Line1---Line2'); alert('File written');">Write with Yoplet</button>
+<button onclick="document.yoplet.performWatch(); alert('File exists ');">Watch with Yoplet</button>
 
 <hr />
 
 <applet 
   name="yoplet"
-  code="org.lostinthegarden.applet.impl.DefaultFileOperatorImpl.class" 
+  code="org.yoplet.Yoplet.class" 
   archive="../build/archives/yoplet.jar" 
   width="600" 
   height="200">
   <param name="action" value="sleep"/>
+  <param name="lineSeparator"  value="---" />
   <param name="debug" value="true" />
-  <param name="readPath"  value="C:\Documents and Settings\Thomas\Mes documents\Yoplet read.txt " />
-  <param name="writePath" value="C:\Documents and Settings\Thomas\Mes documents\Yoplet write.txt" />
-  <param name="watchPath" value="C:\Documents and Settings\Thomas\Mes documents\Yoplet watch.txt" />
+  <param name="filePath"  value="C:\Documents and Settings\Thomas\Mes documents\Yoplet file.txt" />
+  <param name="flagPath"  value="C:\Documents and Settings\Thomas\Mes documents\Yoplet flag.txt" />
   <param name="url" value="http://erwan.legoulven.free.fr/index.php" />
   <param name="content" value="Another content" />
 </applet>
@@ -94,15 +83,15 @@ var YopletCreator = {
   },
   
   attributes: {
-    code: "org.lostinthegarden.applet.impl.DefaultFileOperatorImpl.class",
+    code: "org.yoplet.Yoplet.class",
     archive: "../build/archives/yoplet.jar",
     width: "600",
     height: "200"    
   },
   
   parameters: {
-    watchPath: "C:\\Documents and Settings\\Thomas\\Mes documents\\Yoplet watch.txt",
-    writePath: "C:\\Documents and Settings\\Thomas\\Mes documents\\Yoplet write.txt",
+    lineSeparator: "---",
+    filePath: "C:\\Documents and Settings\\Thomas\\Mes documents\\Yoplet file.txt",
     content: "A small test content",
     url: "http://erwan.legoulven.free.fr/index.php",
     debug: "true"

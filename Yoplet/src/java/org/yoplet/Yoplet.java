@@ -111,7 +111,7 @@ public class Yoplet extends JApplet implements FileOperator {
     /**
      * Request perform method 
      */
-    public void performRequest() {
+    public String performRequest() {
         HttpURLConnection cnx = null;
         try         {
             //FileInputStream stream = new FileInputStream(this.in);
@@ -142,13 +142,17 @@ public class Yoplet extends JApplet implements FileOperator {
                 cnx.disconnect();
             }
         }
+        
+        return "OK";
     }
     
     /**
      * Read Operation 
      */
-    public void performRead() {
+    public String performRead() {
         this.jReadCall = true;
+        String res = "OK";
+        return res;
     }
     
     private void readFile() {
@@ -170,9 +174,10 @@ public class Yoplet extends JApplet implements FileOperator {
     /**
      * Write operation
      */
-    public void performWrite(String content) {
+    public String performWrite(String content) {
     	this.content = content;
         this.jWriteCall = true;
+        return "OK";
     }
     
     
@@ -219,17 +224,21 @@ public class Yoplet extends JApplet implements FileOperator {
     }
     
     
-    public void performWatch() {
+    public String performWatch() {
         this.jWatchCall = true;
+        String res = "KO";
         while (true) {
-            if (null != watcher && null != watcher.getWatcherReturn()) break;
+            if (null != watcher && null != watcher.getWatcherReturn()) {
+            	res = "OK";
+            	break;
+            }
             try {
                 Thread.sleep(1000);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        trace(watcher.getWatcherReturn().toString());
+        return res;
     }
     
     private void watchFile(){
@@ -254,14 +263,16 @@ public class Yoplet extends JApplet implements FileOperator {
         super.init();
         
         // UI initialisation
-        Container contentPane = getContentPane ();
+        Container contentPane = getContentPane();
         this.output = new TextOutputPanel();
         contentPane.add ((TextOutputPanel) this.output);
-        
-        this.trace("Initiliazing applet");
+
 
         // Data initialisation
         this.debug = new Boolean(getParameter(FileOperator.DEBUG)).booleanValue();
+        
+        contentPane.setVisible(debug);
+        
         this.action = getParameter(FileOperator.ACTION);
 
         this.file = createParamFile(FileOperator.FILE_PATH);

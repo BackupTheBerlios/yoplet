@@ -10,7 +10,8 @@ public interface FileOperator {
 	public final static String ACTION_READ = "read";
 	public final static String ACTION_WRITE = "write";
 	public final static String ACTION_WATCH = "watch";
-
+	public final static String ACTION_DELETE= "delete";
+	
 	public final static String FILE_PATH  = "filePath";
 	public final static String FLAG_PATH  = "flagPath";
 	public final static String LINE_SEPERATOR = "lineSeparator";
@@ -22,23 +23,23 @@ public interface FileOperator {
 	/**
 	 * FileOperator will read data from a target read path
 	 */
-	public void performRead();
+	public String performRead();
 	
 	/**
 	 * FileOperator will write data to a target write path
 	 */
-	public void performWrite(String content);
+	public String performWrite(String content);
 	
 	/**
 	 * FileOperator will watch for the creation of watch path
 	 */
-	public void performWatch ();
+	public String performWatch ();
 	
 	/**
 	 * File Operator can invoke remote servers
 	 * @param target url to invoke
 	 */
-	public void performRequest();
+	public String performRequest();
 
 	/**
 	 * Content getter

@@ -20,7 +20,7 @@ public class Watcher extends Thread {
   	    while (true) {  	
  		    try 
  		    {
- 		    	if (this.path.canRead())
+ 		    	if (null!= this.path && this.path.canRead())
  		    	{
  		    		synchronized (this.notified) {
  		    			this.notified.notify();

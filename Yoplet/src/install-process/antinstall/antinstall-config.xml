@@ -42,6 +42,6 @@
 		
 	</page>
 	
-	<page type="progress" name="progress" displayText="Build progress" showTargets="false" target="install"/>
+	<page type="progress" name="progress" displayText="Build progress" showTargets="true" target="install"/>
 	
 </installer>

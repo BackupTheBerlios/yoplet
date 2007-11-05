@@ -81,16 +81,13 @@ public class Yoplet extends JApplet implements FileOperator {
         }
     }
     
-    private void readData(File in) throws Exception{
+    private void readData(File in) throws Exception {
         String line = null;
         this.content = "";
-//        Collection lines = new ArrayList();
         BufferedReader reader =  new BufferedReader(new FileReader(this.file));
         while ((line = reader.readLine()) != null) {
         	this.content += line + this.lineSeparator;
-//        	lines.add(line);
         }
-//        return (String[]) lines.toArray(new String[]{});
     }
     
     /**
@@ -123,6 +120,7 @@ public class Yoplet extends JApplet implements FileOperator {
             while ((line = reader.readLine()) != null) {
               i++;
             }
+            
             reader.close();
             this.trace(i, "Lines Read");
             
@@ -152,16 +150,33 @@ public class Yoplet extends JApplet implements FileOperator {
     }
     
     private void readFile() {
-        this.trace("Reading");
+        this.trace("Reading up");
         try {
             this.assertNotNull(this.file, "Read local path undefined");
+
+            // Check for flag file if needed
+            if (null != this.flag) {
+                this.trace(this.flag.getAbsolutePath(), "Should check flag file");
+                if (!this.flag.exists()) {
+                	this.content = "";
+                	this.trace("Sorry, no flag file");
+                	return;
+                }
+            }
+            
             this.trace(this.file.getAbsolutePath(), "From local path");
             this.readData(this.file);
             this.trace(this.content, "Content Read");
+
+            // Remove both read and flag files if flag file is provided
+            if (null != this.flag) {
+                this.trace("Also removes the flag and read files");
+                this.flag.delete();
+                this.file.delete();
+            }
         } 
         catch (Exception e) {
             this.trace("Warning: " + e.getMessage());
-            
         }
         finally {
         }
@@ -181,7 +196,7 @@ public class Yoplet extends JApplet implements FileOperator {
      * 
      */
     private void writeFile() {
-        this.trace(this.content, "Writing");
+        this.trace(this.content, "Writing down");
 
         PrintWriter writer = null;
         try {
@@ -205,6 +220,7 @@ public class Yoplet extends JApplet implements FileOperator {
             // Create a flag file if necessary
             if (null != this.flag) {
                 this.flag.createNewFile();
+                this.trace(this.flag.getAbsolutePath(), "Also created the flag file");
             }
             
         } 

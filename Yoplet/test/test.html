@@ -24,8 +24,6 @@
 <p>Here, the applet element is hard coded in HTML coded and will perform one action, 
 depending on <tt>action</tt> parameter value.</p>
 
-<hr />
-
 <applet 
   code="org.yoplet.Yoplet.class" 
   archive="../build/archives/yoplet.jar" 
@@ -33,11 +31,14 @@ depending on <tt>action</tt> parameter value.</p>
   height="200">
   <param name="action" value="write" />
   <param name="debug" value="true" />
-  <param name="filePath"  value="C:\Documents and Settings\Thomas\Mes documents\Yoplet file.txt" />
+  <param name="filePath"  value="C:\Documents and Settings\Thomas\Mes documents\Yoplet html.txt" />
+  <param name="flagPath"  value="C:\Documents and Settings\Thomas\Mes documents\Yoplet html.flg" />
   <param name="lineSeparator"  value="---" />
   <param name="url" value="http://erwan.legoulven.free.fr/index.php" />
   <param name="content" value="Yet a multiline content---with a line---and another---and a last one"/>
 </applet>
+
+<hr />
 
 <h2>Applet creation via HTML, action call via Javacript</h2>
 
@@ -46,11 +47,31 @@ then javascript on <tt>action</tt> parameter value.</p>
 <p>Javascript calls are synchronous, meaning its thread will start running again after the action
 is actually performed (file read, written or altered);</p>
 
-<button onclick="document.yoplet.performRead (); alert('File read   ' + document.yoplet.getContent());">Read with Yoplet</button>
-<button onclick="document.yoplet.performWrite('Line1---Line2'); alert('File written');">Write with Yoplet</button>
-<button onclick="document.yoplet.performWatch(); alert('File exists ');">Watch with Yoplet</button>
+<script type="text/javascript">
 
-<hr />
+var Yoplet = {
+  read: function() {
+    document.yoplet.performRead();
+    var content = document.yoplet.getContent() + "";
+    document.yoplet.stop();
+    alert('File read, content is:\n' + content);
+  },
+  write: function(content) {
+    document.yoplet.performWrite(content); 
+    document.yoplet.stop();
+    alert('File written, content is:\n' + content);
+  },
+  watch: function() {
+	document.yoplet.performWatch(); 
+	alert('File exists ');
+  }
+}
+
+</script>
+
+<button onclick="Yoplet.read();">Read with Yoplet</button>
+<button onclick="Yoplet.write('Line1---Line2');">Write with Yoplet</button>
+<button onclick="Yoplet.watch();">Watch with Yoplet</button>
 
 <applet 
   name="yoplet"
@@ -61,11 +82,13 @@ is actually performed (file read, written or altered);</p>
   <param name="action" value="sleep"/>
   <param name="lineSeparator"  value="---" />
   <param name="debug" value="true" />
-  <param name="filePath"  value="C:\Documents and Settings\Thomas\Mes documents\Yoplet file.txt" />
-  <param name="flagPath"  value="C:\Documents and Settings\Thomas\Mes documents\Yoplet flag.txt" />
+  <param name="filePath"  value="C:\Documents and Settings\Thomas\Mes documents\Yoplet htmljs.txt" />
+  <param name="flagPath"  value="C:\Documents and Settings\Thomas\Mes documents\Yoplet htmljs.flg" />
   <param name="url" value="http://erwan.legoulven.free.fr/index.php" />
-  <param name="content" value="Another content" />
+  <param name="content" value="" />
 </applet>
+
+<hr />
 
 <h2>Applet creation via Javascript</h2>
 

@@ -1,6 +1,7 @@
 package org.yoplet.graphic;
 
 import java.awt.GridLayout;
+import java.awt.Point;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -33,11 +34,13 @@ public class TextOutputPanel extends JPanel implements Outputable {
 	  /** Display a string + carriage return on the JTextArea. **/
 	  public void println(String str) {
 	    fTextArea.append(str + CR);
+	    fTextArea.setCaretPosition(fTextArea.getDocument().getLength());
 	  }
 
 	  /** Dispaly a string on the JTextArea. **/
 	  public void print(String str) {
 	    fTextArea.append(str);
+	    fTextArea.setCaretPosition(fTextArea.getDocument().getLength());
 	  }
 
 }

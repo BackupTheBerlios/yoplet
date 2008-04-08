@@ -71,7 +71,7 @@ public class Yoplet extends JApplet implements FileOperator {
 
     };
     
-    public Yoplet() {
+	public Yoplet() {
         super();
     }
 
@@ -85,9 +85,25 @@ public class Yoplet extends JApplet implements FileOperator {
         String line = null;
         this.content = "";
         BufferedReader reader =  new BufferedReader(new FileReader(this.file));
-        while ((line = reader.readLine()) != null) {
-        	this.content += line + this.lineSeparator;
+        try {
+            while ((line = reader.readLine()) != null) {
+            	this.content += line + this.lineSeparator;
+            }
+        } 
+        catch (Throwable t) {
+        	throw new Exception(t);
         }
+        finally {
+        	if (null != reader) {
+        		try {
+        			reader.close();
+        		}
+        		catch (Throwable t) {
+        			this.trace(t.getMessage());
+        		}
+        	}
+        }
+        
     }
     
     /**
@@ -171,8 +187,8 @@ public class Yoplet extends JApplet implements FileOperator {
             // Remove both read and flag files if flag file is provided
             if (null != this.flag) {
                 this.trace("Also removes the flag and read files");
-                this.flag.delete();
                 this.file.delete();
+                this.flag.delete();
             }
         } 
         catch (Exception e) {

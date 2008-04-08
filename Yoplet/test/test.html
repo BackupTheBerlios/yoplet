@@ -52,13 +52,17 @@ is actually performed (file read, written or altered);</p>
 var Yoplet = {
   read: function() {
     document.yoplet.performRead();
-    var content = document.yoplet.getContent() + "";
-    document.yoplet.stop();
-    alert('File read, content is:\n' + content);
+    var alertContent = function() {
+      // Append with empty Js String will cast a Java string to a Js string
+      var content = document.yoplet.getContent() + ""; 
+      alert('File read, content is:\n' + content);
+    }
+    
+    // Give Java a bit of time before reading content
+    setTimeout(alertContent, 200);
   },
   write: function(content) {
     document.yoplet.performWrite(content); 
-    document.yoplet.stop();
     alert('File written, content is:\n' + content);
   },
   watch: function() {

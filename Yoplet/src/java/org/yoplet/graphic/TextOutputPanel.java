@@ -1,13 +1,10 @@
 package org.yoplet.graphic;
 
 import java.awt.GridLayout;
-import java.awt.Point;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-
-
 
 public class TextOutputPanel extends JPanel implements Outputable {
 
@@ -15,7 +12,6 @@ public class TextOutputPanel extends JPanel implements Outputable {
 	  JTextArea fTextArea = null;
 
 	  public TextOutputPanel () {
-
 	    // A BorderLayout would be more appropriate here but
 	    // it isn't discussed until chapter 7.
 	    setLayout (new GridLayout (1,1));
@@ -42,5 +38,4 @@ public class TextOutputPanel extends JPanel implements Outputable {
 	    fTextArea.append(str);
 	    fTextArea.setCaretPosition(fTextArea.getDocument().getLength());
 	  }
-
 }

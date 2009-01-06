@@ -41,7 +41,7 @@ public class Yoplet extends JApplet implements FileOperator {
     private boolean jWatchCall = false;    
  
     private Watcher  watcher = null;
-    Thread javascriptListener = new Thread() {
+    Runnable javascriptListener = new Runnable() {
 
       public void run() {
     
@@ -61,7 +61,7 @@ public class Yoplet extends JApplet implements FileOperator {
                 watchFile();
             }
             try {
-                sleep(30);
+                Thread.sleep(30);
             }
             catch (Throwable t) {
                 t.printStackTrace();
@@ -311,7 +311,7 @@ public class Yoplet extends JApplet implements FileOperator {
         this.lineSeparator = getParameter(FileOperator.LINE_SEPERATOR);
         
         if (null != this.javascriptListener) {
-            this.javascriptListener.start();
+            this.javascriptListener.run();
         }
     }
     

@@ -1,6 +1,13 @@
 <project name="Yoplet" default="info">
 	<property environment="myenv" />
 	<property file="build.properties"/>
+	
+	<path id="jars">
+	    <pathelement path="build/lib/commons-logging-1.1.1.jar"/>
+		<pathelement path="build/lib/commons-io-1.4.jar"/>
+		<pathelement path="build/lib/commons-codec-1.3.jar"/>
+		<pathelement path="build/lib/commons-httpclient-3.1.jar"/>
+	</path>
 
 	<target name="info"  description="gives info about the build file targets">
 		<echo>[target : compile]</echo>
@@ -37,7 +44,17 @@
 		</tstamp>
 		<delete dir="build/classes"/>
 		<mkdir dir="build/classes"/>
-		<javac srcdir="src/java" destdir="build/classes" includes="**/*.java" deprecation="yes" debug="${debug}" source="${source}" target="${target}"/>	
+		<javac 
+			srcdir="src/java" 
+			destdir="build/classes" 
+			includes="**/*.java" 
+			deprecation="yes" 
+			debug="${debug}" 
+			source="${source}" 
+			target="${target}"
+		>
+			<classpath refid="jars"/>
+		</javac>	
 	</target>
 	
 	
@@ -81,6 +98,10 @@
 	</target>
 	
 	<target name="sign-jar" description="jar sign">
+		<signjar jar="build/lib/commons-logging-1.1.1.jar" alias="${key.alias}" storepass="${key.store.pass}" verbose="true"/>
+		<signjar jar="build/lib/commons-io-1.4.jar" alias="${key.alias}" storepass="${key.store.pass}" verbose="true"/>
+		<signjar jar="build/lib/commons-codec-1.3.jar" alias="${key.alias}" storepass="${key.store.pass}" verbose="true"/>
+		<signjar jar="build/lib/commons-httpclient-3.1.jar" alias="${key.alias}" storepass="${key.store.pass}" verbose="true"/>
 		<signjar jar="build/archives/yoplet.jar" alias="${key.alias}" storepass="${key.store.pass}" verbose="true"/>
 	</target>
 	

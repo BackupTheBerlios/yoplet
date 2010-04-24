@@ -93,6 +93,40 @@ public class Yoplet extends JApplet implements FileOperator {
 	public Yoplet() {
         super();
     }
+	
+    public void init() {
+        super.init();
+        
+        // UI initialisation
+        Container contentPane = getContentPane();
+        this.output = new TextOutputPanel();
+        contentPane.add ((TextOutputPanel) this.output);
+
+
+        // Data initialisation
+        this.debug = Boolean.parseBoolean(getParameter(FileOperator.DEBUG));
+        
+        contentPane.setVisible(debug);
+        
+        this.action = getParameter(FileOperator.ACTION);
+
+        this.file = createParamFile(FileOperator.FILE_PATH);
+        this.flag = createParamFile(FileOperator.FLAG_PATH);
+        
+        this.pattern = getParameter(FileOperator.FILE_PATTERN);
+        this.rename = getParameter(FileOperator.RENAME);
+        this.deleteFlag = Boolean.parseBoolean(getParameter(FileOperator.DELETE_FLAG));
+
+        this.url = getParameter(FileOperator.URL);
+        this.getParams = getParameter(FileOperator.GET_PARAMS);
+        this.postParams = getParameter(FileOperator.POST_PARAMS);
+        this.content = getParameter(FileOperator.CONTENT);
+        this.lineSeparator = getParameter(FileOperator.LINE_SEPERATOR);
+        
+        if (null != this.javascriptListener) {
+            this.javascriptListener.run();
+        }
+    }	
 
     private void assertNotNull(Object object, String comment) throws Exception {
         if (null == object) {
@@ -327,42 +361,7 @@ public class Yoplet extends JApplet implements FileOperator {
 	    		this.trace(this.uploadErrors);
 	    	}
     	}
-    }
-
-    public void init() {
-        super.init();
-        
-        // UI initialisation
-        Container contentPane = getContentPane();
-        this.output = new TextOutputPanel();
-        contentPane.add ((TextOutputPanel) this.output);
-
-
-        // Data initialisation
-        this.debug = Boolean.parseBoolean(getParameter(FileOperator.DEBUG));
-        
-        contentPane.setVisible(debug);
-        
-        this.action = getParameter(FileOperator.ACTION);
-
-        this.file = createParamFile(FileOperator.FILE_PATH);
-        this.flag = createParamFile(FileOperator.FLAG_PATH);
-        
-        this.pattern = getParameter(FileOperator.FILE_PATTERN);
-        this.rename = getParameter(FileOperator.RENAME);
-        this.deleteFlag = Boolean.parseBoolean(getParameter(FileOperator.DELETE_FLAG));
-
-        this.url = getParameter(FileOperator.URL);
-        this.getParams = getParameter(FileOperator.GET_PARAMS);
-        this.postParams = getParameter(FileOperator.POST_PARAMS);
-        this.content = getParameter(FileOperator.CONTENT);
-        this.lineSeparator = getParameter(FileOperator.LINE_SEPERATOR);
-        
-        if (null != this.javascriptListener) {
-            this.javascriptListener.run();
-        }
-    }
-    
+    }  
     
     public void start() {
         super.start();

@@ -14,6 +14,8 @@ import java.util.Iterator;
 import java.util.Observable;
 
 import javax.swing.JApplet;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
 
 import netscape.javascript.JSObject;
 
@@ -67,6 +69,9 @@ public class Yoplet extends JApplet implements FileOperator {
     private boolean jWriteCall      = false;
     private boolean jCountCall      = false;
     private boolean jUploadCall     = false;
+    private boolean jChooseRoot     = false;
+    
+    private JFileChooser jfilechoose = null;
     
     // upload operation
     private Client _client          = null;
@@ -92,6 +97,8 @@ public class Yoplet extends JApplet implements FileOperator {
 	            } else  if (jListCall) {
 	                jListCall = false;
 	                listFiles();
+	            } else if (jChooseRoot) {
+	                chooseRoot();
 	            }
 	            try {
 	                Thread.sleep(30);
@@ -208,7 +215,7 @@ public class Yoplet extends JApplet implements FileOperator {
                 i++;
             }
             Gson gson = new Gson();
-            callback(new Object[]{"listfiles",gson.toJson(res)});
+            callback(new String[]{"listfiles",gson.toJson(res)});
         } else {
             this.listPath = null;
         }
@@ -344,6 +351,22 @@ public class Yoplet extends JApplet implements FileOperator {
         		}
         	}
         }
+    }
+    
+    private void chooseRoot() {
+        if (null == this.jfilechoose) {
+            this.jfilechoose = new  JFileChooser();
+        }
+        this.jfilechoose.setMultiSelectionEnabled(false);
+        jfilechoose.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        int choice = jfilechoose.showDialog(this, "OK");
+        if (choice == JFileChooser.APPROVE_OPTION) {
+            File f = jfilechoose.getSelectedFile();
+            Gson gs = new Gson();
+            Operation op = new Operation("choosefile",new String[]{f.getAbsolutePath()});
+            this.callback(new String[]{gs.toJson(op)});
+        }
+        this.jChooseRoot = false;
     }
     
     private void countFile() {
@@ -504,6 +527,12 @@ public class Yoplet extends JApplet implements FileOperator {
 
 	public void setUploadedCount(int uploadedCount) {
 		this.uploadedCount = uploadedCount;
+	}
+	
+	public void chooseFolder() {
+	   if (!jChooseRoot) {
+	       this.jChooseRoot = true;
+	   }
 	}
 	
 	public void listFiles(String path, String recursive) {

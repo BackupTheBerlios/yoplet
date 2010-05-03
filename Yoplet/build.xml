@@ -3,10 +3,14 @@
 	<property file="build.properties"/>
 	
 	<path id="jars">
+		<pathelement path="build/lib/org.restlet.jar"/>
+		<pathelement path="build/lib/com.noelios.restlet.jar"/>
 	    <pathelement path="build/lib/commons-logging-1.1.1.jar"/>
 		<pathelement path="build/lib/commons-io-1.4.jar"/>
 		<pathelement path="build/lib/commons-codec-1.3.jar"/>
 		<pathelement path="build/lib/commons-httpclient-3.1.jar"/>
+		<pathelement path="build/lib/plugin-jar.jar"/>
+		<pathelement path="build/lib/gson-1.3.jar"/>	
 	</path>
 
 	<target name="info"  description="gives info about the build file targets">
@@ -44,8 +48,7 @@
 		</tstamp>
 		<delete dir="build/classes"/>
 		<mkdir dir="build/classes"/>
-		<javac 
-			srcdir="src/java" 
+		<javac  
 			destdir="build/classes" 
 			includes="**/*.java" 
 			deprecation="yes" 
@@ -54,6 +57,8 @@
 			target="${target}"
 			includeantruntime="false"
 		>
+			<src path="src/java"/>
+			
 			<classpath refid="jars"/>
 		</javac>	
 	</target>
@@ -73,10 +78,13 @@
 			</manifest>
 			<fileset dir="build/classes" includes="**" excludes="**/*Test*"/>
 			<fileset dir="doc" includes="licence.txt"/>
-			<zipfileset src="build/lib/commons-io-1.4.jar" includes="**/*.class"/>
+			<zipfileset src="build/lib/org.restlet.jar" includes="**/*"/>
+			<zipfileset src="build/lib/com.noelios.restlet.jar" includes="**/*"/>
+			<zipfileset src="build/lib/commons-io-1.4.jar" includes="**/*"/>
 			<zipfileset src="build/lib/commons-httpclient-3.1.jar" includes="**/*.class"/>
 			<zipfileset src="build/lib/commons-codec-1.3.jar" includes="**/*.class"/>
-			<zipfileset src="build/lib/commons-logging-1.1.1.jar" includes="**/*.class"/>			
+			<zipfileset src="build/lib/commons-logging-1.1.1.jar" includes="**/*.class"/>
+			<zipfileset src="build/lib/gson-1.3.jar" includes="**/*.class"/>	
 		</jar>
 	</target>
 	
@@ -104,12 +112,6 @@
 	
 	<target name="sign-jar" description="jar sign">
 		<!-- commons jars have ever been signed if new jars are used you must sign them -->
-		<!--
-		<signjar jar="build/lib/commons-logging-1.1.1.jar" alias="${key.alias}" storepass="${key.store.pass}" verbose="true"/>
-		<signjar jar="build/lib/commons-io-1.4.jar" alias="${key.alias}" storepass="${key.store.pass}" verbose="true"/>
-		<signjar jar="build/lib/commons-codec-1.3.jar" alias="${key.alias}" storepass="${key.store.pass}" verbose="true"/>
-		<signjar jar="build/lib/commons-httpclient-3.1.jar" alias="${key.alias}" storepass="${key.store.pass}" verbose="true"/>
-		-->
 		<signjar jar="build/archives/yoplet.jar" alias="${key.alias}" storepass="${key.store.pass}" verbose="true"/>
 	</target>
 	
@@ -138,6 +140,80 @@
 	</target>
 	
 	<target name="release" depends="release-src, release-dist"/>
+	
+	<target name="build-test" depends="build">
+		<tstamp>
+			<format property="NOW" pattern="MM/dd/yyyy hh:mm aa"/>
+		</tstamp>
+		<delete dir="build/classes"/>
+		<mkdir dir="build/classes"/>
+		<javac  
+			destdir="build/classes" 
+			includes="**/*.java" 
+			deprecation="yes" 
+			debug="${debug}" 
+			source="6" 
+			target="6"
+			includeantruntime="false"
+		>
+			<src path="test/java"/>
+			
+			<classpath>
+				<fileset dir="build/lib" includes="junit.jar"/>
+				<fileset dir="build/lib" includes="org.restlet.jar"/>
+			</classpath>
+		</javac>
+		
+			<delete file="build/archives/yoplet-test.jar"/>
+			<mkdir dir="build/archives"/>
+			<jar destfile="build/archives/yoplet-test.jar">
+				<manifest>
+					<attribute name="Build-By" value="${user.name}" />
+					<section name="${ant.project.name}">
+						<attribute name="Specification-Title" value="${title}" />
+						<attribute name="Specification-Version" value="${build.version}" />
+						<attribute name="Implementation-Date" value="${NOW}" />
+					</section>
+				</manifest>
+				<fileset dir="build/classes"/>			
+			</jar>		
+		
+	</target>
+		
+	<target name="unit-tests" depends="build-test">
+		<path id="test.path">
+			<pathelement path="build/lib/junit.jar"/>
+			<pathelement path="build/lib/org.restlet.jar"/>
+			<pathelement path="build/lib/com.noelios.restlet.jar"/>
+			<pathelement path="build/lib/commons-io-1.4.jar"/>
+			<pathelement path="build/lib/commons-httpclient-3.1.jar"/>
+			<pathelement path="build/lib/commons-codec-1.3.jar"/>
+			<pathelement path="build/lib/commons-logging-1.1.1.jar"/>			
+			<pathelement path="${archives}/yoplet-test.jar"/>
+		</path>
+		
+		<mkdir dir="${reports}/junit"/>
+		<mkdir dir="${reports}/test-result"/>
+		
+		<!-- Run tests -->
+		<junit printsummary="yes" haltonfailure="no" showoutput="yes" fork="yes">
+			<classpath>				
+				<path refid="test.path"/>
+			</classpath>
+			<formatter type="xml"/>
+			<batchtest todir="${reports}/junit">
+				<fileset dir="test/java">
+					<include name="**/*.java"/>
+				</fileset>
+			</batchtest>
+		</junit>
+		<junitreport todir="${reports}/junit">
+			<fileset dir="${reports}/junit">
+				<include name="TEST-*.xml"/>
+			</fileset>
+			<report format="noframes" todir="${reports}/test-result"/>
+		</junitreport>		
+	</target>
 	
 	<target name="run-test" depends="init-browser">
 		<copy todir="${http.location}" overwrite="true">
@@ -192,4 +268,5 @@
 				<fileset dir="build/installer"/>
 		</installer>
 	</target>
+	
 </project>

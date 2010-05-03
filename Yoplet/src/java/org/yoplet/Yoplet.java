@@ -7,26 +7,25 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
+import java.net.MalformedURLException;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.Observable;
 
 import javax.swing.JApplet;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.NameValuePair;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.multipart.FilePart;
-import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
-import org.apache.commons.httpclient.methods.multipart.Part;
-import org.apache.commons.httpclient.methods.multipart.StringPart;
-import org.apache.commons.httpclient.util.ParameterParser;
+import netscape.javascript.JSObject;
+
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
+import org.restlet.Client;
+import org.restlet.data.Protocol;
 import org.yoplet.graphic.Outputable;
 import org.yoplet.graphic.TextOutputPanel;
+
+import com.google.gson.Gson;
 
 public class Yoplet extends JApplet implements FileOperator {
 	public final static String RETURN_OK = "OK";
@@ -40,26 +39,37 @@ public class Yoplet extends JApplet implements FileOperator {
     
     private String     content       = null;
     
-    private String     uploadErrors  = null;
-    private String	   pattern		 = null;
-    private String     rename        = null;
-    private int		   count         = 0;
-    private int		   uploadedCount = 0;
-    private boolean    deleteFlag    = false;
+    private String      uploadErrors    = null;
+    private String	     pattern         = null;
+    private String      rename          = null;
+    private int         count           = 0;
+    private int         uploadedCount   = 0;
+    private boolean     deleteFlag      = false;
     
-    private String     lineSeparator = null;
+    private String     lineSeparator    = null;
 
     private String     url        = null;
     private String     getParams  = null;
     private String     postParams = null;
     private boolean    debug      = false;
     private Outputable output     = null;
+    
+    // File listing part
+    private boolean recursive       = false;
+    private String listPath         = null;
+    
+    //callback part
+    private String callbackmethod   = "appletCallBack";
 
     // javascript handle props
-    private boolean jReadCall		= false;
-    private boolean jWriteCall		= false;
-    private boolean jCountCall		= false;
-    private boolean jUploadCall		= false;
+    private boolean jListCall       = false;
+    private boolean jReadCall       = false;
+    private boolean jWriteCall      = false;
+    private boolean jCountCall      = false;
+    private boolean jUploadCall     = false;
+    
+    // upload operation
+    private Client _client          = null;
  
     Runnable javascriptListener = new Runnable() {
     	public void run() {
@@ -79,6 +89,9 @@ public class Yoplet extends JApplet implements FileOperator {
 	            else if (jUploadCall) {
 	            	jUploadCall = false;
 	                uploadFiles();
+	            } else  if (jListCall) {
+	                jListCall = false;
+	                listFiles();
 	            }
 	            try {
 	                Thread.sleep(30);
@@ -96,6 +109,10 @@ public class Yoplet extends JApplet implements FileOperator {
 	
     public void init() {
         super.init();
+        
+        if (! checkJava5()) {
+            
+        }
         
         // UI initialisation
         Container contentPane = getContentPane();
@@ -122,6 +139,12 @@ public class Yoplet extends JApplet implements FileOperator {
         this.postParams = getParameter(FileOperator.POST_PARAMS);
         this.content = getParameter(FileOperator.CONTENT);
         this.lineSeparator = getParameter(FileOperator.LINE_SEPERATOR);
+        
+        String cbmethod = getParameter("callbackmethod");
+        
+        if (null != cbmethod) {
+            this.callbackmethod = cbmethod; 
+        }
         
         if (null != this.javascriptListener) {
             this.javascriptListener.run();
@@ -169,6 +192,28 @@ public class Yoplet extends JApplet implements FileOperator {
         return  path != null ? new File(path) : null;
     }
     
+    /**
+     * Search File Method, triggered by js
+     */
+    private void listFiles() {
+        File root = new File(this.listPath);
+        if (root.exists() && root.isDirectory()) {
+            // lets look for file
+            Collection files = FileUtils.listFiles(root, null, this.recursive);
+            String[] res = new String[files.size()];
+            int i= 0;
+            for (Iterator iterator = files.iterator(); iterator.hasNext();) {
+                File f = (File) iterator.next();
+                res[i] = f.getAbsolutePath(); 
+                i++;
+            }
+            Gson gson = new Gson();
+            callback(new Object[]{"listfiles",gson.toJson(res)});
+        } else {
+            this.listPath = null;
+        }
+    }
+    
     private File[] filterFile() {
     	if(this.file.exists() && this.file.isDirectory()) {
 	    	FileFilter fileFilter = new WildcardFileFilter(this.pattern);
@@ -178,34 +223,18 @@ public class Yoplet extends JApplet implements FileOperator {
     	return null;
     }
     
-    private void uploadFile(File file, String fileName, String url, String getParameters, String postParameters) throws HttpException, IOException {
-    	String urlString = url;
-    	if(getParameters != null && !"".equals(getParameters))
-    		urlString += "?" + getParameters;
-    	PostMethod post = new PostMethod(urlString);
-        
-        try {
-        	// Make part's list
-        	ParameterParser parser = new ParameterParser();
-        	List postParamsList = parser.parse(postParameters, '&');
-            Part[] parts = new Part[postParamsList.size() + 1];
-            for(int i = 0; i < postParamsList.size(); i++) {
-            	NameValuePair param = (NameValuePair) postParamsList.get(i);
-            	parts[i] = new StringPart(param.getName(), param.getValue());
-            };
-            parts[parts.length - 1] = new FilePart(fileName, file);
-            
-            // Proceed HTTP request
-            post.setRequestEntity(new MultipartRequestEntity(parts, post.getParams()));
-            HttpClient httpclient = new HttpClient();
-            int result = httpclient.executeMethod(post);
-            this.trace("Response status code : " + result);
-            
-            // Write response on disk
-            this.writeResponse(post.getResponseBodyAsString(), fileName);
-		} finally {
-            post.releaseConnection();
-        }
+    private void uploadFile(File file, String fileName, String url, String getParameters, String postParameters) throws MalformedURLException {
+    	if (checkJava5()) {
+    	    trace("Check Java version " + System.getProperty("java.version"));
+    	    java.net.URL u = new java.net.URL(url);
+    	    String p = u.getProtocol();
+    	    Protocol protoc = Protocol.valueOf(p);
+    	    
+    	    this._client = new Client(protoc);
+    	    
+    	} else {
+    	    trace("Could not perform upload");
+    	}
     }
     
     /**
@@ -331,25 +360,25 @@ public class Yoplet extends JApplet implements FileOperator {
     	File[] files = this.filterFile();
     	if(files != null) {	    	
 	    	StringBuffer sb = new StringBuffer(50);
-	    	for(int i = 0; i < files.length; i++) {
+	    	for (int j = 0; j < files.length; j++) {
+                
 	    		try {
 	    			// Define name of the part for rename files on server side
-	    			String fileName = FilenameUtils.getBaseName(files[i].getName());
-	    			if(this.rename != null && !"".equals(this.rename)) {
-	    				fileName = this.rename + i;
+	    			String fileName = FilenameUtils.getBaseName(files[j].getName());
+	    			if(this.rename != null && this.rename.length() > 0) {
+	    				fileName = this.rename + j;
 	    				this.trace("Define part name to " + fileName);
 	    			}
 	    			
-	    			this.uploadFile(files[i], fileName, this.url, this.getParams, this.postParams);
+	    			this.uploadFile(file, fileName, this.url, this.getParams, this.postParams);
 	    			this.uploadedCount--;
 	    			// Delete files if needed
 	    			if(this.deleteFlag) {
 	    				this.trace("Also removes the file uploaded");
-	    				files[i].delete();
-	    				
+	    				files[j].delete();	
 	    			}
 				} catch (Exception e) {
-					sb.append(files[i].getName());
+					sb.append(files[j].getName());
 					sb.append(" isn't uploaded : ");
 					sb.append(e.getMessage());
 					sb.append("\r\n");
@@ -409,32 +438,40 @@ public class Yoplet extends JApplet implements FileOperator {
         }
     }
 
+    /**
+     * Trace method, available in debug mode
+     * @param value
+     * @param key
+     */
     private void trace(String value, String key) {
         if (this.debug) {
             output.println(">>  " + key + " :");
             output.println(value);
         }
+        getAppletContext().showStatus(key +" : " +value);
     }
     
-    private void writeResponse(String response, String fileName) throws IOException {
-    	if (this.debug) {
-    		BufferedWriter writer = null;
-    		try {
-	    		writer = new BufferedWriter(new FileWriter(this.file.getPath() + File.separator + "response_" + fileName.replace('.', '_') + ".html"));
-	    		writer.write(response);
-    		}
-    		finally {
-    			if (null != writer) {
-            		try {
-                        writer.flush();
-                        writer.close();
-            		}
-            		catch (Exception t) {
-            			this.trace(t.getMessage());
-            		}
-            	}
-            }
-    	}
+    /**
+     * Callback mehod (with mayscript tag within applet declaration)
+     * @param method
+     * @param params
+     * @return
+     */
+    private boolean callback(Object[] params) {
+        try  {
+            
+            JSObject  jsobj = JSObject.getWindow(this);
+            ((JSObject)jsobj).call(this.callbackmethod, params);
+            
+            return true;
+        } catch (Exception e){ 
+            trace(e.getMessage(),"Error");
+            return false;
+        }
+    }
+    
+    private boolean checkJava5() {
+        return System.getProperty("java.version").startsWith("1.5");
     }
 
     public String getContent() {
@@ -467,6 +504,18 @@ public class Yoplet extends JApplet implements FileOperator {
 
 	public void setUploadedCount(int uploadedCount) {
 		this.uploadedCount = uploadedCount;
+	}
+	
+	public void listFiles(String path, String recursive) {
+	    if (!jListCall){ 
+    	    if (this.listPath == null) {
+    	        this.listPath = path;
+    	        this.recursive = Boolean.getBoolean(recursive);
+    	    }
+    	    this.jListCall = true;
+	    } else {
+	        trace("File listing currently running, wait a minute");
+	    }
 	}
 
 }

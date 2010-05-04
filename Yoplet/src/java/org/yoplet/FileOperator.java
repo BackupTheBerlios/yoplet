@@ -44,7 +44,7 @@ public interface FileOperator {
 	/**
 	 * File Operator can upload file on remote servers
 	 */
-	public String performUpload(String rename);
+	public String performUpload(String rename,String files);
 
 	/**
 	 * Content getter

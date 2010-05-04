@@ -10,7 +10,6 @@
 		<pathelement path="build/lib/commons-codec-1.3.jar"/>
 		<pathelement path="build/lib/commons-httpclient-3.1.jar"/>
 		<pathelement path="build/lib/plugin-jar.jar"/>
-		<pathelement path="build/lib/gson-1.3.jar"/>	
 	</path>
 
 	<target name="info"  description="gives info about the build file targets">
@@ -83,8 +82,7 @@
 			<zipfileset src="build/lib/commons-io-1.4.jar" includes="**/*"/>
 			<zipfileset src="build/lib/commons-httpclient-3.1.jar" includes="**/*.class"/>
 			<zipfileset src="build/lib/commons-codec-1.3.jar" includes="**/*.class"/>
-			<zipfileset src="build/lib/commons-logging-1.1.1.jar" includes="**/*.class"/>
-			<zipfileset src="build/lib/gson-1.3.jar" includes="**/*.class"/>	
+			<zipfileset src="build/lib/commons-logging-1.1.1.jar" includes="**/*.class"/>	
 		</jar>
 	</target>
 	

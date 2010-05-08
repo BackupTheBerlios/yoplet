@@ -20,6 +20,7 @@ import javax.swing.JFileChooser;
 
 import netscape.javascript.JSObject;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
@@ -79,12 +80,14 @@ public class Yoplet extends JApplet implements FileOperator {
     private boolean jCountCall      = false;
     private boolean jUploadCall     = false;
     private boolean jChooseRoot     = false;
+    private boolean jDeleteCall     = false;
     
     private JFileChooser jfilechoose = null;
     
     // upload operation
     private Client _client          = null;
     private Set uploadqueue = new HashSet();
+    private Set deletequeue = new HashSet();
  
     Runnable javascriptListener = new Runnable() {
     	public void run() {
@@ -109,6 +112,9 @@ public class Yoplet extends JApplet implements FileOperator {
 	                listFiles();
 	            } else if (jChooseRoot) {
 	                chooseRoot();
+	            } else if (jDeleteCall) {
+	                jDeleteCall = false;
+	                deleteFiles();
 	            }
 	            try {
 	                Thread.sleep(30);
@@ -242,9 +248,16 @@ public class Yoplet extends JApplet implements FileOperator {
     	return null;
     }
     
+    /**
+     * Upload Method
+     * @param file
+     * @param fileName
+     * @throws MalformedURLException
+     */
     private void uploadFile(File file, String fileName) throws MalformedURLException {
     	if (checkJava5()) {
     	    Client client = null;
+    	    String md5 = DigestUtils.md5Hex(file.getAbsolutePath());
     	    try {
     	    trace("Check Java version " + System.getProperty("java.version"));
     	    java.net.URL u = new java.net.URL(this.url);
@@ -258,14 +271,14 @@ public class Yoplet extends JApplet implements FileOperator {
             resource.addQueryParameter("filename", fileName).addQueryParameter("originalname", file.getAbsolutePath());
             FileRepresentation f = new FileRepresentation(file,MediaType.IMAGE_PNG);
             Response response = client.post(resource, f);
-            
+            trace("url",resource.toString());
             trace("Status",""+response.getStatus()+"  vs " +Status.SUCCESS_OK.getCode());
             Representation rep = response.getEntity();
             
             if (Status.SUCCESS_OK.equals(response.getStatus())) {
-                callback(new Object[]{new JSONObject(new Operation("uploadok",new String[]{file.getAbsolutePath()})).toString()});
+                callback(new Object[]{new JSONObject(new Operation("uploadok",new String[]{file.getAbsolutePath(), md5})).toString()});
             } else {
-                callback(new Object[]{new JSONObject(new Operation("uploadko",new String[]{file.getAbsolutePath()})).toString()});
+                callback(new Object[]{new JSONObject(new Operation("uploadko",new String[]{file.getAbsolutePath(), md5})).toString()});
             }
 
                 client.stop();
@@ -296,6 +309,30 @@ public class Yoplet extends JApplet implements FileOperator {
         return Yoplet.RETURN_OK;
     }
     
+    /**
+     * Deletion method
+     * @param files
+     * @return
+     */
+    public String performDelete(String files) {
+        if (!jDeleteCall) {
+            try {
+                JSONArray jsfiles = new JSONArray(files);
+                this.deletequeue.clear();
+                for (int i = 0; i < jsfiles.length(); i++) {
+                    this.deletequeue.add(jsfiles.getString(i));
+                }
+                this.jDeleteCall = true;
+                return Yoplet.RETURN_OK;
+                
+            } catch (JSONException jse){
+                trace(jse.getMessage());
+                return Yoplet.RETURN_KO;
+            }
+        } else {
+            return Yoplet.RETURN_KO;
+        }
+    }
     /**
      * Exist perform method 
      */
@@ -427,6 +464,29 @@ public class Yoplet extends JApplet implements FileOperator {
     	this.trace(this.count, " files found to upload");
     }
     
+    /**
+     * Delete file method
+     */
+    private void deleteFiles(){
+        Operation op;
+        String path;
+        String md5;
+        
+        for (Iterator iterator = this.deletequeue.iterator(); iterator.hasNext();) {
+            path = (String) iterator.next();
+            md5 = DigestUtils.md5Hex(path);
+            
+            if (FileUtils.deleteQuietly(new File(path))) {
+                op = new Operation("deleteok",new String[]{path,md5});
+            } else {
+                op = new Operation("deleteko",new String[]{path,md5});
+            }
+            this.callback(new String[]{new JSONObject(op).toString()});
+        }
+    }
+    
+    
+    
     private void uploadFiles() {
     	int  j=0;
     	System.out.println("Dealing with "+ this.uploadqueue.size() + " elements to be uploaded");
@@ -471,20 +531,19 @@ public class Yoplet extends JApplet implements FileOperator {
             this.trace(this.action, "Action type");
             
             if (this.action.equals(FileOperator.ACTION_READ)) {
-                this.performRead();
+                //this.performRead();
             } 
             
             if (this.action.equals(FileOperator.ACTION_WRITE)) {
                 this.trace("Applet writing");
-                this.performWrite(this.content);
+                //this.performWrite(this.content);
             }
             
             if (this.action.equals(FileOperator.ACTION_COUNT)) {
                 this.trace("Applet test existing");
-                this.performCount();
+                //this.performCount();
             }
-            
-            this.trace("Applet now sleeping");
+            callback(new String[]{new JSONObject(new Operation("start",new String[]{"ok"})).toString()});
         } 
         catch (Exception e) {
             this.trace("Error starting applet: " + e.getMessage());
@@ -591,5 +650,15 @@ public class Yoplet extends JApplet implements FileOperator {
 	        trace("File listing currently running, wait a minute");
 	    }
 	}
+	
+    public void stop() {
+       super.stop();
+       this.javascriptListener = null;
+    }
+
+    public void destroy() {
+        super.destroy();
+        this.javascriptListener = null;
+    }
 
 }

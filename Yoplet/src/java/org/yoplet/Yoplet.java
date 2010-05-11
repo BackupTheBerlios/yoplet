@@ -32,6 +32,7 @@ import org.restlet.data.Response;
 import org.restlet.data.Status;
 import org.restlet.resource.FileRepresentation;
 import org.restlet.resource.Representation;
+import org.restlet.util.Engine;
 import org.yoplet.graphic.Outputable;
 import org.yoplet.graphic.TextOutputPanel;
 import org.yoplet.json.JSONArray;
@@ -85,7 +86,6 @@ public class Yoplet extends JApplet implements FileOperator {
     private JFileChooser jfilechoose = null;
     
     // upload operation
-    private Client _client          = null;
     private Set uploadqueue = new HashSet();
     private Set deletequeue = new HashSet();
  
@@ -131,21 +131,22 @@ public class Yoplet extends JApplet implements FileOperator {
     }
 	
     public void init() {
+        System.out.println("init start");
         super.init();
-        
-       
+        System.out.println("step 2");
         // Data initialisation
         this.debug = Boolean.parseBoolean(getParameter(FileOperator.DEBUG));
         
-        System.out.println("Debug option" + debug);
-        
         if (this.debug) {
+            System.out.println("Debug is on");
             // UI initialisation
             Container contentPane = getContentPane();
             this.output = new TextOutputPanel();
             contentPane.add ((TextOutputPanel) this.output);
             contentPane.setVisible(true);
         }
+        
+        System.out.println("step 3");
         
         this.action = getParameter(FileOperator.ACTION);
 
@@ -168,12 +169,11 @@ public class Yoplet extends JApplet implements FileOperator {
             this.callbackmethod = cbmethod; 
         }
         
-        if (null != this.javascriptListener) {
-            this.javascriptListener.run();
-        }
+        System.out.println("step 4");
         
-        Operation op = new Operation("init",null);
+        Operation op = new Operation("init",new String[]{});
         callback(new String[]{new JSONObject(op).toString()});
+        System.out.println("init end");
     }	
 
     private void assertNotNull(Object object, String comment) throws Exception {
@@ -256,36 +256,43 @@ public class Yoplet extends JApplet implements FileOperator {
      */
     private void uploadFile(File file, String fileName) throws MalformedURLException {
     	if (checkJava5()) {
-    	    Client client = null;
     	    String md5 = DigestUtils.md5Hex(file.getAbsolutePath());
+    	    Client client = null;
     	    try {
-    	    trace("Check Java version " + System.getProperty("java.version"));
-    	    java.net.URL u = new java.net.URL(this.url);
-    	    String p = u.getProtocol();
-    	    Protocol protoc = Protocol.valueOf(p);
-    	    
-    	    client = new Client(protoc);
-    	    client.start();
-            Reference baseRef = new Reference(Protocol.HTTP,u.getHost(),u.getPort());
-            Reference resource = new Reference(baseRef,u.getPath());
-            resource.addQueryParameter("filename", fileName).addQueryParameter("originalname", file.getAbsolutePath());
-            FileRepresentation f = new FileRepresentation(file,MediaType.IMAGE_PNG);
-            Response response = client.post(resource, f);
-            trace("url",resource.toString());
-            trace("Status",""+response.getStatus()+"  vs " +Status.SUCCESS_OK.getCode());
-            Representation rep = response.getEntity();
-            
-            if (Status.SUCCESS_OK.equals(response.getStatus())) {
-                callback(new Object[]{new JSONObject(new Operation("uploadok",new String[]{file.getAbsolutePath(), md5})).toString()});
-            } else {
-                callback(new Object[]{new JSONObject(new Operation("uploadko",new String[]{file.getAbsolutePath(), md5})).toString()});
-            }
+        	    java.net.URL u = new java.net.URL(this.url);
+        	    String p = u.getProtocol();
+        	    Protocol protoc = Protocol.valueOf(p);
+        	    
+        	    client = new Client(protoc);
+        	    client.start();
+                Reference baseRef = new Reference(Protocol.HTTP,u.getHost(),(-1 != u.getPort())?u.getPort():80);
+                trace("baseRef",baseRef.toString());
+                Reference resource = new Reference(baseRef,u.getPath());
+                trace("resource",resource.toString());
+                resource.addQueryParameter("filename", fileName).addQueryParameter("originalname", file.getAbsolutePath());
+                FileRepresentation f = new FileRepresentation(file,MediaType.IMAGE_PNG);
+                Response response = client.post(resource, f);
+                trace("url",resource.toString());
+                trace("Status",""+response.getStatus()+"  vs " +Status.SUCCESS_OK.getCode());
+                Representation rep = response.getEntity();
+                
+                if (Status.SUCCESS_OK.equals(response.getStatus())) {
+                    callback(new Object[]{new JSONObject(new Operation("uploadok",new String[]{file.getAbsolutePath(), md5})).toString()});
+                } else {
+                    callback(new Object[]{new JSONObject(new Operation("uploadko",new String[]{file.getAbsolutePath(), md5})).toString()});
+                }
 
-                client.stop();
             } catch(Exception e) {
                 trace(e.getMessage());
             } finally {
-                client = null;
+                if (null != client) {
+                    try {
+                        client.stop();
+                        client = null;
+                    } catch (Exception e) {
+                        // nada
+                    }
+                }
             }
     	} else {
     	    trace("Could not perform upload");
@@ -447,7 +454,8 @@ public class Yoplet extends JApplet implements FileOperator {
         }
         this.jfilechoose.setMultiSelectionEnabled(false);
         jfilechoose.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        int choice = jfilechoose.showDialog(this, "OK");
+        int choice = jfilechoose.showDialog(null, "OK");
+        System.out.println("Dialog Shown");
         if (choice == JFileChooser.APPROVE_OPTION) {
             File f = jfilechoose.getSelectedFile();
             Operation op = new Operation("choosefile",new String[]{f.getAbsolutePath()});
@@ -509,10 +517,9 @@ public class Yoplet extends JApplet implements FileOperator {
 				} else {
 				    System.out.println("Cannot upload directory or non existing file -- skipping");
 				}
-				
-    			trace("Upload ok for file " + fileName);
     			j++;
 			} catch (Exception e) {
+			    e.printStackTrace();
 			    StringBuffer sb = new StringBuffer(50);
 				sb.append(file.getName());
 				sb.append(" isn't uploaded : ");
@@ -524,28 +531,31 @@ public class Yoplet extends JApplet implements FileOperator {
     }  
     
     public void start() {
+        System.out.println("before parent start");
         super.start();
-        
+        System.out.println(" after parent start");
         try {
             this.trace("Starting applet");
             this.trace(this.action, "Action type");
             
             if (this.action.equals(FileOperator.ACTION_READ)) {
-                //this.performRead();
+                this.performRead();
             } 
             
             if (this.action.equals(FileOperator.ACTION_WRITE)) {
                 this.trace("Applet writing");
-                //this.performWrite(this.content);
+                this.performWrite(this.content);
             }
             
             if (this.action.equals(FileOperator.ACTION_COUNT)) {
                 this.trace("Applet test existing");
-                //this.performCount();
+                this.performCount();
             }
+            
+            this.javascriptListener.run();
+            
             callback(new String[]{new JSONObject(new Operation("start",new String[]{"ok"})).toString()});
-        } 
-        catch (Exception e) {
+        } catch (Exception e) {
             this.trace("Error starting applet: " + e.getMessage());
         }
 
@@ -598,7 +608,15 @@ public class Yoplet extends JApplet implements FileOperator {
     }
     
     private boolean checkJava5() {
-        return System.getProperty("java.version").startsWith("1.5");
+        String version = System.getProperty("java.version");
+        boolean res = false;
+        System.out.println("Version : "+ version.split("\\.")[1]);
+        if (version.split("\\.").length >= 2) {
+            res = (Integer.parseInt(version.split("\\.")[1]) >= 5);
+        } else {
+            res = false;
+        }
+        return res;
     }
 
     public String getContent() {

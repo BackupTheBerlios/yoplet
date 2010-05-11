@@ -10,6 +10,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -50,13 +51,26 @@ public class UploadTest {
         out.close();
     }
     
+    @After
+    public void tearDown() throws Exception {
+        if (null != c) {
+            c.stop();
+        }
+    }
+    
     
     @Test
     public void testBasicUpload() throws Exception {
         c = new Client(Protocol.HTTP);
         FileRepresentation f = new FileRepresentation(toBeuploaded,MediaType.IMAGE_PNG);
-        Reference baseRef = new Reference(Protocol.HTTP,serverurl);
-        Reference resource = new Reference(baseRef,resourceUrl);
+        java.net.URL u = new java.net.URL("http://y0pl3t.appspot.com/test/upload");
+        String p = u.getProtocol();
+        Protocol protoc = Protocol.valueOf(p);
+        
+        Reference baseRef = new Reference(protoc,u.getHost(),(-1 != u.getPort())?u.getPort():80);
+        Reference resource = new Reference(baseRef,u.getPath());
+        resource.addQueryParameter("filename", "toto").addQueryParameter("originalname", "/Users/erwan/Desktop/ sans titre.fpbf/.DS_Store");
+        System.out.println(resource.toString());
         Response response = c.post(resource, f);
         Representation resp = response.getEntity();        
         assertEquals(response.getStatus(),Status.SUCCESS_OK);

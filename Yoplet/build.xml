@@ -77,11 +77,12 @@
 			</manifest>
 			<fileset dir="build/classes" includes="**" excludes="**/*Test*"/>
 			<fileset dir="doc" includes="licence.txt"/>
-			<zipfileset src="build/lib/org.restlet.jar" includes="**/*.class"/>
-			<zipfileset src="build/lib/commons-io-1.4.jar" includes="**/*.class"/>
-			<zipfileset src="build/lib/commons-httpclient-3.1.jar" includes="**/*.class"/>
-			<zipfileset src="build/lib/commons-codec-1.3.jar" includes="**/*.class"/>
-			<zipfileset src="build/lib/commons-logging-1.1.1.jar" includes="**/*.class"/>
+			<zipfileset src="build/lib/org.restlet.jar" includes="**/*" excludes="**/*.txt"/>
+			<zipfileset src="build/lib/com.noelios.restlet.jar" includes="**/*" excludes="**/*.txt"/>			
+			<zipfileset src="build/lib/commons-io-1.4.jar" includes="**/*" excludes="**/*.txt"/>
+			<zipfileset src="build/lib/commons-httpclient-3.1.jar" includes="**/*" excludes="**/*.txt"/>
+			<zipfileset src="build/lib/commons-codec-1.3.jar" includes="**/*" excludes="**/*.txt"/>
+			<zipfileset src="build/lib/commons-logging-1.1.1.jar" includes="**/*" excludes="**/*.txt"/>
 		</jar>
 	</target>
 	
@@ -110,8 +111,8 @@
 	<target name="sign-jar" description="jar sign">
 		<!-- commons jars have ever been signed if new jars are used you must sign them -->
 		<signjar jar="build/archives/yoplet.jar" alias="${key.alias}" storepass="${key.store.pass}" verbose="true"/>
+	<!--		
 		<signjar jar="build/lib/com.noelios.restlet.jar" alias="${key.alias}" storepass="${key.store.pass}" verbose="true"/>
-	<!--
 		<signjar jar="build/lib/org.restlet.jar" alias="${key.alias}" storepass="${key.store.pass}" verbose="true"/>
 		<signjar jar="build/lib/commons-io-1.4.jar" alias="${key.alias}" storepass="${key.store.pass}" verbose="true"/>
 		<signjar jar="build/lib/commons-httpclient-3.1.jar" alias="${key.alias}" storepass="${key.store.pass}" verbose="true" />

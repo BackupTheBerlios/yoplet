@@ -7,13 +7,20 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Observable;
 import java.util.Set;
+import java.util.zip.CRC32;
 
 import javax.swing.JApplet;
 import javax.swing.JFileChooser;
@@ -23,6 +30,7 @@ import netscape.javascript.JSObject;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.restlet.Client;
 import org.restlet.data.MediaType;
@@ -32,12 +40,13 @@ import org.restlet.data.Response;
 import org.restlet.data.Status;
 import org.restlet.resource.FileRepresentation;
 import org.restlet.resource.Representation;
-import org.restlet.util.Engine;
 import org.yoplet.graphic.Outputable;
 import org.yoplet.graphic.TextOutputPanel;
 import org.yoplet.json.JSONArray;
 import org.yoplet.json.JSONException;
 import org.yoplet.json.JSONObject;
+
+import sun.security.krb5.Checksum;
 
 public class Yoplet extends JApplet implements FileOperator {
 	public final static String RETURN_OK = "OK";
@@ -68,8 +77,10 @@ public class Yoplet extends JApplet implements FileOperator {
     private Outputable output     = null;
     
     // File listing part
-    private boolean recursive       = false;
-    private String listPath         = null;
+    private boolean     recursive       = false;
+    private String      listPath        = null;
+    private String[]    filefilters     = new String[]{};
+    private String[]    cookies         = new String[]{};
     
     //callback part
     private String callbackmethod   = "appletCallBack";
@@ -158,11 +169,13 @@ public class Yoplet extends JApplet implements FileOperator {
         this.deleteFlag = Boolean.parseBoolean(getParameter(FileOperator.DELETE_FLAG));
 
         this.url = getParameter(FileOperator.URL);
-        this.getParams = getParameter(FileOperator.GET_PARAMS);
-        this.postParams = getParameter(FileOperator.POST_PARAMS);
         this.content = getParameter(FileOperator.CONTENT);
         this.lineSeparator = getParameter(FileOperator.LINE_SEPERATOR);
         
+        String cookies = getParameter(FileOperator.LINE_SEPERATOR);
+        if (null != cookies) {
+        	this.cookies = cookies.split("\\s");
+        }
         String cbmethod = getParameter("callbackmethod");
         
         if (null != cbmethod) {
@@ -224,16 +237,23 @@ public class Yoplet extends JApplet implements FileOperator {
         File root = new File(this.listPath);
         if (root.exists() && root.isDirectory()) {
             // lets look for file
-            Collection files = FileUtils.listFiles(root, null, this.recursive);
-            String[] res = new String[files.size()];
-            int i= 0;
+            Collection files = FileUtils.listFiles(root, this.filefilters, this.recursive);
+            boolean checksum = files.size() <=10;
+            JSONArray res = new JSONArray();
             for (Iterator iterator = files.iterator(); iterator.hasNext();) {
                 File f = (File) iterator.next();
-                res[i] = f.getAbsolutePath(); 
-                i++;
+                Map obj = new HashMap();
+                res.put(new JSONObject(obj));
+                obj.put("path", f.getAbsolutePath());
+                obj.put("size", new Long(f.length()));
+                try {
+                    obj.put("checksum", checksum ? new Long(FileUtils.checksumCRC32(f)): new Long(0));
+                } catch (IOException ioe) {
+                    trace("exception during crc check");
+                }
             }
             trace("Done with file listing  " + files.toString());
-            Operation op = new Operation("listfiles",res);
+            Operation op = new Operation("listfiles",new String[] {res.toString()});
             callback(new String[]{new JSONObject(op).toString()});
         } 
         this.listPath = null;
@@ -668,6 +688,13 @@ public class Yoplet extends JApplet implements FileOperator {
 	        trace("File listing currently running, wait a minute");
 	    }
 	}
+	
+	
+	public void setFileFilters(String filters) {
+	    this.filefilters = filters.split("\\s");
+	    trace("extensions filter " + this.filefilters.toString());
+	}
+	
 	
     public void stop() {
        super.stop();

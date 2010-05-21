@@ -11,16 +11,13 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Observable;
 import java.util.Set;
-import java.util.zip.CRC32;
 
 import javax.swing.JApplet;
 import javax.swing.JFileChooser;
@@ -30,9 +27,9 @@ import netscape.javascript.JSObject;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.restlet.Client;
+import org.restlet.data.Cookie;
 import org.restlet.data.MediaType;
 import org.restlet.data.Protocol;
 import org.restlet.data.Reference;
@@ -46,9 +43,8 @@ import org.yoplet.json.JSONArray;
 import org.yoplet.json.JSONException;
 import org.yoplet.json.JSONObject;
 
-import sun.security.krb5.Checksum;
-
 public class Yoplet extends JApplet implements FileOperator {
+    
 	public final static String RETURN_OK = "OK";
 	public final static String RETURN_KO = "KO";
     
@@ -80,7 +76,8 @@ public class Yoplet extends JApplet implements FileOperator {
     private boolean     recursive       = false;
     private String      listPath        = null;
     private String[]    filefilters     = new String[]{};
-    private String[]    cookies         = new String[]{};
+    private Collection  cookies         = new ArrayList();
+    private String      cookiestring    = null;
     
     //callback part
     private String callbackmethod   = "appletCallBack";
@@ -103,6 +100,7 @@ public class Yoplet extends JApplet implements FileOperator {
     Runnable javascriptListener = new Runnable() {
     	public void run() {
     		while (true) {
+    		    try {
 	            if (jReadCall) {
 	                jReadCall = false;
 	                readFile();
@@ -127,10 +125,9 @@ public class Yoplet extends JApplet implements FileOperator {
 	                jDeleteCall = false;
 	                deleteFiles();
 	            }
-	            try {
 	                Thread.sleep(30);
 	            }
-	            catch (Throwable t) {
+	            catch (Exception t) {
 	                t.printStackTrace();
 	            }
     		}
@@ -142,14 +139,11 @@ public class Yoplet extends JApplet implements FileOperator {
     }
 	
     public void init() {
-        System.out.println("init start");
         super.init();
-        System.out.println("step 2");
         // Data initialisation
         this.debug = Boolean.parseBoolean(getParameter(FileOperator.DEBUG));
         
         if (this.debug) {
-            System.out.println("Debug is on");
             // UI initialisation
             Container contentPane = getContentPane();
             this.output = new TextOutputPanel();
@@ -157,7 +151,6 @@ public class Yoplet extends JApplet implements FileOperator {
             contentPane.setVisible(true);
         }
         
-        System.out.println("step 3");
         
         this.action = getParameter(FileOperator.ACTION);
 
@@ -172,21 +165,14 @@ public class Yoplet extends JApplet implements FileOperator {
         this.content = getParameter(FileOperator.CONTENT);
         this.lineSeparator = getParameter(FileOperator.LINE_SEPERATOR);
         
-        String cookies = getParameter(FileOperator.LINE_SEPERATOR);
-        if (null != cookies) {
-        	this.cookies = cookies.split("\\s");
-        }
+        this.cookiestring = getParameter(FileOperator.COOKIES);
+        
         String cbmethod = getParameter("callbackmethod");
         
         if (null != cbmethod) {
             this.callbackmethod = cbmethod; 
         }
         
-        System.out.println("step 4");
-        
-        Operation op = new Operation("init",new String[]{});
-        callback(new String[]{new JSONObject(op).toString()});
-        System.out.println("init end");
     }	
 
     private void assertNotNull(Object object, String comment) throws Exception {
@@ -233,17 +219,17 @@ public class Yoplet extends JApplet implements FileOperator {
     /**
      * Search File Method, triggered by js
      */
-    private void listFiles() {
+    private void listFiles() throws Exception {
         File root = new File(this.listPath);
         if (root.exists() && root.isDirectory()) {
             // lets look for file
             Collection files = FileUtils.listFiles(root, this.filefilters, this.recursive);
             boolean checksum = files.size() <=10;
-            JSONArray res = new JSONArray();
+            Collection results = new ArrayList();
             for (Iterator iterator = files.iterator(); iterator.hasNext();) {
                 File f = (File) iterator.next();
                 Map obj = new HashMap();
-                res.put(new JSONObject(obj));
+                results.add(obj);
                 obj.put("path", f.getAbsolutePath());
                 obj.put("size", new Long(f.length()));
                 try {
@@ -253,8 +239,11 @@ public class Yoplet extends JApplet implements FileOperator {
                 }
             }
             trace("Done with file listing  " + files.toString());
-            Operation op = new Operation("listfiles",new String[] {res.toString()});
-            callback(new String[]{new JSONObject(op).toString()});
+            Map res = new HashMap();
+            res.put("files", results);
+            JSONObject js= new JSONObject();
+            js.put("name", "listfiles").put("result", res);
+            callback(new String[]{js.toString()});
         } 
         this.listPath = null;
     }
@@ -284,22 +273,37 @@ public class Yoplet extends JApplet implements FileOperator {
         	    Protocol protoc = Protocol.valueOf(p);
         	    
         	    client = new Client(protoc);
+        	    trace("before cookies");
+        	    
+        	    for (Iterator iterator = this.cookies.iterator(); iterator.hasNext();) {
+                    Cookie c = (Cookie) iterator.next();
+                    trace("Cookie " + c.toString());
+                    client.getContext().getParameters().add(c);
+                    trace("Client enriched with cookie " +  c.toString());
+                }
+        	    
+        	    trace("after cookies");
+        	    
         	    client.start();
-                Reference baseRef = new Reference(Protocol.HTTP,u.getHost(),(-1 != u.getPort())?u.getPort():80);
-                trace("baseRef",baseRef.toString());
-                Reference resource = new Reference(baseRef,u.getPath());
-                trace("resource",resource.toString());
-                resource.addQueryParameter("filename", fileName).addQueryParameter("originalname", file.getAbsolutePath());
-                FileRepresentation f = new FileRepresentation(file,MediaType.IMAGE_PNG);
-                Response response = client.post(resource, f);
-                trace("url",resource.toString());
-                trace("Status",""+response.getStatus()+"  vs " +Status.SUCCESS_OK.getCode());
-                Representation rep = response.getEntity();
-                
+        	    Reference baseRef = new Reference(Protocol.HTTP,u.getHost(),(-1 != u.getPort())?u.getPort():80);
+        	    trace("baseRef",baseRef.toString());
+        	    Reference resource = new Reference(baseRef,u.getPath());
+        	    trace("resource",resource.toString());
+        	    resource.addQueryParameter("filename", fileName).addQueryParameter("originalname", file.getAbsolutePath());
+        	    FileRepresentation f = new FileRepresentation(file,MediaType.IMAGE_PNG);
+        	    Response response = client.post(resource, f);
+        	    trace("url",resource.toString());
+        	    trace("Status",""+response.getStatus()+"  vs " +Status.SUCCESS_OK.getCode());
+        	    Representation rep = response.getEntity();
+                JSONObject jso = new JSONObject();
+                jso.put("path", file.getAbsolutePath());
+                jso.put("md5", md5);
+                jso.put("checksum",new Long(FileUtils.checksumCRC32(file)));
+                JSONObject res = new JSONObject();
                 if (Status.SUCCESS_OK.equals(response.getStatus())) {
-                    callback(new Object[]{new JSONObject(new Operation("uploadok",new String[]{file.getAbsolutePath(), md5})).toString()});
+                    callback(new String[]{res.put("name", "uploadok").put("result",jso).toString()});
                 } else {
-                    callback(new Object[]{new JSONObject(new Operation("uploadko",new String[]{file.getAbsolutePath(), md5})).toString()});
+                    callback(new String[]{res.put("name", "uploadko").put("result",jso).toString()});
                 }
 
             } catch(Exception e) {
@@ -468,18 +472,19 @@ public class Yoplet extends JApplet implements FileOperator {
         }
     }
     
-    private void chooseRoot() {
+    private void chooseRoot() throws Exception {
         if (null == this.jfilechoose) {
             this.jfilechoose = new  JFileChooser();
         }
         this.jfilechoose.setMultiSelectionEnabled(false);
         jfilechoose.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         int choice = jfilechoose.showDialog(null, "OK");
-        System.out.println("Dialog Shown");
         if (choice == JFileChooser.APPROVE_OPTION) {
             File f = jfilechoose.getSelectedFile();
-            Operation op = new Operation("choosefile",new String[]{f.getAbsolutePath()});
-            this.callback(new String[]{new JSONObject(op).toString()});
+            Map result = new HashMap();
+            result.put("path",f.getAbsolutePath());
+            JSONObject op = new JSONObject();
+            this.callback(new String[]{op.put("name","choosefile").put("result",result).toString()});
         }
         this.jChooseRoot = false;
     }
@@ -495,19 +500,21 @@ public class Yoplet extends JApplet implements FileOperator {
     /**
      * Delete file method
      */
-    private void deleteFiles(){
-        Operation op;
+    private void deleteFiles() throws Exception {
         String path;
         String md5;
-        
         for (Iterator iterator = this.deletequeue.iterator(); iterator.hasNext();) {
             path = (String) iterator.next();
             md5 = DigestUtils.md5Hex(path);
+            JSONObject jso = new JSONObject();
+            jso.put("path", path).put("md5", md5);
+            
+            JSONObject op = new JSONObject();
             
             if (FileUtils.deleteQuietly(new File(path))) {
-                op = new Operation("deleteok",new String[]{path,md5});
+                op.put("name", "deleteok").put("result", jso);
             } else {
-                op = new Operation("deleteko",new String[]{path,md5});
+                op.put("name", "deleteko").put("result", jso);
             }
             this.callback(new String[]{new JSONObject(op).toString()});
         }
@@ -517,10 +524,10 @@ public class Yoplet extends JApplet implements FileOperator {
     
     private void uploadFiles() {
     	int  j=0;
-    	System.out.println("Dealing with "+ this.uploadqueue.size() + " elements to be uploaded");
     	for (Iterator iterator = this.uploadqueue.iterator(); iterator.hasNext();) {
             String path = (String) iterator.next();
-            System.out.println("Handling " + path +  "upload");
+            this.trace("Handling " + path +  "upload");
+            
             File file = null;
             boolean rename = (this.rename != null && this.rename.length() > 0); 
     		try {
@@ -551,12 +558,36 @@ public class Yoplet extends JApplet implements FileOperator {
     }  
     
     public void start() {
+        
         System.out.println("before parent start");
         super.start();
         System.out.println(" after parent start");
+        
         try {
+            
             this.trace("Starting applet");
             this.trace(this.action, "Action type");
+
+            Collection cs = new ArrayList();
+            
+            if (null != cookiestring) {
+                String[] cooks = cookiestring.split("\\s");
+                    if (null != cooks) {
+                    for (int i = 0; i < cooks.length; i++) {
+                        trace("Adding cookie " + cooks[i]);
+                        String c = getCookie(cooks[i]);
+                        if (null !=c) {
+                            cs.add(new Cookie(cooks[i], c));
+                            trace("Cookie added " + cooks[i]);
+                        } else {
+                            trace("Cookie not added " + cooks[i]);
+                        }
+                    }
+                    this.cookies = cs;
+                }
+            }
+            
+            trace("cookie init done");
             
             if (this.action.equals(FileOperator.ACTION_READ)) {
                 this.performRead();
@@ -574,7 +605,6 @@ public class Yoplet extends JApplet implements FileOperator {
             
             this.javascriptListener.run();
             
-            callback(new String[]{new JSONObject(new Operation("start",new String[]{"ok"})).toString()});
         } catch (Exception e) {
             this.trace("Error starting applet: " + e.getMessage());
         }
@@ -620,6 +650,7 @@ public class Yoplet extends JApplet implements FileOperator {
             JSObject  jsobj = JSObject.getWindow(this);
             ((JSObject)jsobj).call(this.callbackmethod, params);
             
+            trace("Callback done");
             return true;
         } catch (Exception e){ 
             trace(e.getMessage(),"Error");
@@ -705,5 +736,40 @@ public class Yoplet extends JApplet implements FileOperator {
         super.destroy();
         this.javascriptListener = null;
     }
+    
+    
+    private String getCookie(String name) {
+        
+        JSObject js = JSObject.getWindow(this);
+        trace("window found " + js);
+        JSObject document = (JSObject)js.getMember("document");
+        trace("document found " + document);
+        String myCookie = (String)document.getMember("cookie");
+        trace("Cookie found " + myCookie);
+        
+        String res = null;
+        
+        if (null!= myCookie && myCookie.length() > 0) {
+            String search = name + "=";
+            
+            if (myCookie.length() > 0) {
+                
+               int offset = myCookie.indexOf(search);
+               if (offset != -1) {
+                  offset += search.length();
+                  int end = myCookie.indexOf(";", offset);
+                  if (end == -1) {
+                      end = myCookie.length();
+                  }
+                  return myCookie.substring(offset,end);
+               } else {
+                 trace("Cookie not found " + name);
+               }
+             }
+        } else {
+            trace("Cookie not found " + name); 
+        }
+        return res;
+   }
 
 }

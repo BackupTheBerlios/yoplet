@@ -1,0 +1,21 @@
+nav ul {
+	list-style:none outside none;
+}
+
+nav ul li {
+	float:left;
+	margin-left:5px;
+}
+
+ul.toolbar {
+	list-style:none outside none;	
+}
+
+ul.toolbar li {
+	float:left;
+	margin-left:5px;
+}
+.ui-selected {
+	background:none repeat scroll 0 0 #F39814;
+	color:#3f3f3f;
+}

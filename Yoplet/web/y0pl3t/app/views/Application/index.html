@@ -1,0 +1,181 @@
+#{extends 'main.html' /}
+#{set title:'Yoplet' /}
+
+<article class="ui-widget">
+	<h1>What is it about ?</h1>
+
+	<p>Yoplet is some piece of code that helps you handle OS level File System Operation within your browser</p>
+
+	<ul>
+	  <li>Write content to a file</li>
+	  <li>Read content from local file</li>
+	  <li>Watch for a local file alteration (creation, modification, deletion)</li>
+	</ul>
+	
+	<h2>Coming up in version 2.0</h2>
+	<ul>
+	  	<li>List files (recursively or not) from a selected folder</li>
+	  	<li>Upload files to a configurable target (http upload supported for now)</li>
+		<li>Callback with LiveConnect integration</li>	
+	</ul>
+	
+	
+	<h2>Demo</h2>
+
+	<ul class="toolbar">
+		<li>
+			<h3>Step 1</h3>
+			<button class="button list ui-helper-hidden">Select Root Folder</button>
+		</li>
+		<li class="step2 ui-helper-hidden">
+			<h3>Step 2</h3>
+			<button class="button upload">Upload Selected Files</button>			
+		</li>
+	</ul>
+
+	<div id="files" class="ui-widget ui-helper-hidden" style="position:relative;float:left;width:100%">
+		<h3 class="ui-widget-header">Content</h3>
+		<div class="ui-widget-content ui-corner-all" style="width:100%;height:600px;overflow:auto;">
+			<ol class="content selectable">
+
+			</ol>
+		</div>
+	</div>
+</article>
+<div class="applet ui-widget" style="width:400px;height:200px;position:fixed;top:20px;right:20px;">
+	<applet id="yoplet"
+			name="yoplet"
+			code="org.yoplet.Yoplet.class"
+			archive="@{'/public/libs/yoplet.jar'}"
+			width="400"
+			height="200"
+			codebase="yoplet"
+			mayscript="true">
+		  <param name="action" value="write" />
+		  <param name="debug" value="true" />
+		  <param name="filePath"  value="/home/erwan/toto.txt" />
+		  <param name="flagPath"  value="/home/erwan/flag.path" />
+		  <param name="lineSeparator"  value="---" />
+		  <param name="url" value="http://y0pl3t.appspot.com/test/upload"/>
+		  <param name="content" value="Yet a multiline content---with a line---and another---and a last one"/>
+		Java is required for this page
+	</applet>
+</div>
+<script type="text/javascript" charset="utf-8">
+var cb = function() {
+	alert('coucou');
+}
+var ser = $.toJSON(function(){alert('coucou');});
+
+var root = undefined;
+
+function handleStart() {
+	$('button.list').fadeIn('slow');
+}
+
+function handleDeletionOK(result) {
+	var hash = result.hash;
+	$('#'+hash).hide('explode',{},500,function(){
+	});
+}
+
+function handleDeletionKO(result) {
+	alert('File deletion failed : ' +result.path);
+}
+
+function handleUploadOK(result) {
+	var hash = result.md5;
+	$('#'+hash).effect('pulsate',{},1000,function() {
+		//console.log('deleting File ', $(this).text());
+		if (confirm(' Are you sure you wanna delete uploaded file ' + result.path)) {
+			//console.log('json',$.toJSON([$(this).text()]));
+			document.yoplet.performDelete($.toJSON([$(this).text()]));
+		}
+	});
+}
+
+function handleUploadKO(result) {
+	alert('Upload KO for file ' + result.path);
+}
+
+function handleRoot(result) {
+	var root = result.path;
+	
+	if (root) {
+		// lets now find files for this root
+		document.yoplet.setFileFilters("jpg");
+		document.yoplet.listFiles(root,"true");
+	}
+}
+
+function handleListFiles(result) {
+	$('div#files').fadeOut('slow');	
+	$('ol.content').html('');
+	$(result.files).each(function(index,res){
+		$('ol.content').append('<li id='+$.md5(res.path)+' class="ui-corner-all">'+res.path+'</li>');
+	});
+	$('div#files').fadeIn('slow');
+}
+
+function appletCallBack(args) {
+	if (args) {
+		var operation = $.evalJSON(args);
+		var opname = operation.name;
+
+		switch (opname) {
+			case 'choosefile':
+				handleRoot(operation.result);
+				break;
+			case 'listfiles':
+				handleListFiles(operation.result);
+				break;
+			case 'uploadok':
+				handleUploadOK(operation.result);
+				break;
+			case 'uploadko':
+				handleUploadKO(operation.result);
+				break;
+			case 'deleteok':
+				handleDeletionOK(operation.result);
+				break;
+			case 'deleteko':
+				handleDeletionKO(operation.result);
+				breeak;
+			default:
+				break;
+		}
+	} else {
+		alert('could not parse callback message');
+	}
+	
+}
+
+$(document).ready(function() {
+	$('button.list').click(function(){
+		document.yoplet.chooseFolder();
+	});
+	
+	$('button.upload').click(function(){
+		var files = [];
+ 		$('li.ui-selected').each(function(index){
+			files.push($(this).text());
+		});
+		
+		var json = $.toJSON(files);
+		var res = document.yoplet.performUpload("toto",json);
+		
+	});
+	
+	$('.selectable').selectable({
+		stop : function(event,ui) {
+			if ($('li.ui-selected').length > 0) {
+				$('li.step2').fadeIn('slow');
+			} else {
+				$('li.step2').fadeOut('slow');				
+			}	
+		}
+	});
+	
+	$('.button').button();
+});
+</script>

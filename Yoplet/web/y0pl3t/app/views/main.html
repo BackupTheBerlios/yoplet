@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>#{get 'title' /}</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <link rel="stylesheet" type="text/css" media="screen" href="@{'/public/stylesheets/main.css'}">
+        #{get 'moreStyles' /}
+        <link rel="shortcut icon" type="image/png" href="@{'/public/images/favicon.png'}">
+		<!--[if lt IE 9]>
+	        <script src="@{'/public/javascripts/excanvas.js'}" type="text/javascript" charset="utf-8"></script>
+			<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+		<![endif]-->
+		
+		<link class="jsbin" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
+		<script class="jsbin" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+		<script class="jsbin" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.0/jquery-ui.min.js"></script>
+		<script class="jsbin" src="http://jquery-json.googlecode.com/files/jquery.json-2.2.min.js"></script>
+        <script src="@{'/public/javascripts/modernizr-1.1.min.js'}" type="text/javascript" charset="utf-8"></script>
+        <script src="@{'/public/javascripts/jquery.md5.js'}" type="text/javascript" charset="utf-8"></script>
+        #{get 'moreScripts' /}
+    </head>
+    <body>
+		<div class="ui-widget row" style="position:relative;float:left;">
+		<header style="width:100%;">
+			<nav class="ui-widget-content">
+				<ul>
+					<li>#{a @Application.index(),class:'button'}Home#{/a}</li>
+					<li>#{a @Application.index(), class:'button'}Html5 Demo (soon)#{/a}</li>
+					<li>#{a @Application.index(), class:'button'}Html4 Demo (soon)#{/a}</li>
+				</ul>
+			</nav>
+		</header>
+			<div class="ui-widget content" style="position:relative;float:left:width:100%;">
+        		#{doLayout /}
+			</div>	
+		</div>
+    </body>
+</html>

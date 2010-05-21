@@ -1,0 +1,17 @@
+#{extends 'main.html'/}
+#{set title : 'Tests results' /}
+
+<div class="ui-widget">
+<h2>Uploads</h2>
+	#{list items:uploads, as:'up'}
+		<div>
+			<h3> ${up.filename} (${up.originalname})<h3/>
+			<p>
+				File upload date : ${up.created}
+			</p>
+			<p>
+				File hashcode : ${up.file?.hashCode()} <br/>
+			</p>
+		</div>
+	#{/list}	
+</div>

@@ -99,8 +99,11 @@ public class Yoplet extends JApplet implements FileOperator {
  
     Runnable javascriptListener = new Runnable() {
     	public void run() {
+    	    
+    	    System.out.println("running");
+    	    
     		while (true) {
-    		    try {
+    		    
 	            if (jReadCall) {
 	                jReadCall = false;
 	                readFile();
@@ -125,9 +128,11 @@ public class Yoplet extends JApplet implements FileOperator {
 	                jDeleteCall = false;
 	                deleteFiles();
 	            }
+	            try {
+
 	                Thread.sleep(30);
 	            }
-	            catch (Exception t) {
+	            catch (Throwable t) {
 	                t.printStackTrace();
 	            }
     		}
@@ -219,7 +224,7 @@ public class Yoplet extends JApplet implements FileOperator {
     /**
      * Search File Method, triggered by js
      */
-    private void listFiles() throws Exception {
+    private void listFiles() {
         File root = new File(this.listPath);
         if (root.exists() && root.isDirectory()) {
             // lets look for file
@@ -242,8 +247,12 @@ public class Yoplet extends JApplet implements FileOperator {
             Map res = new HashMap();
             res.put("files", results);
             JSONObject js= new JSONObject();
+            try {
             js.put("name", "listfiles").put("result", res);
             callback(new String[]{js.toString()});
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         } 
         this.listPath = null;
     }
@@ -472,7 +481,8 @@ public class Yoplet extends JApplet implements FileOperator {
         }
     }
     
-    private void chooseRoot() throws Exception {
+    private void chooseRoot() {
+        System.out.println("choose1");
         if (null == this.jfilechoose) {
             this.jfilechoose = new  JFileChooser();
         }
@@ -481,10 +491,15 @@ public class Yoplet extends JApplet implements FileOperator {
         int choice = jfilechoose.showDialog(null, "OK");
         if (choice == JFileChooser.APPROVE_OPTION) {
             File f = jfilechoose.getSelectedFile();
+            
             Map result = new HashMap();
             result.put("path",f.getAbsolutePath());
             JSONObject op = new JSONObject();
-            this.callback(new String[]{op.put("name","choosefile").put("result",result).toString()});
+            try {
+                this.callback(new String[]{op.put("name","choosefile").put("result",result).toString()});
+            } catch(JSONException e) {
+                e.printStackTrace();
+            }
         }
         this.jChooseRoot = false;
     }
@@ -500,23 +515,28 @@ public class Yoplet extends JApplet implements FileOperator {
     /**
      * Delete file method
      */
-    private void deleteFiles() throws Exception {
+    private void deleteFiles() {
         String path;
         String md5;
         for (Iterator iterator = this.deletequeue.iterator(); iterator.hasNext();) {
-            path = (String) iterator.next();
-            md5 = DigestUtils.md5Hex(path);
-            JSONObject jso = new JSONObject();
-            jso.put("path", path).put("md5", md5);
             
-            JSONObject op = new JSONObject();
-            
-            if (FileUtils.deleteQuietly(new File(path))) {
-                op.put("name", "deleteok").put("result", jso);
-            } else {
-                op.put("name", "deleteko").put("result", jso);
+            try {
+                path = (String) iterator.next();
+                md5 = DigestUtils.md5Hex(path);
+                JSONObject jso = new JSONObject();
+                jso.put("path", path).put("md5", md5);
+                
+                JSONObject op = new JSONObject();
+                
+                if (FileUtils.deleteQuietly(new File(path))) {
+                    op.put("name", "deleteok").put("result", jso);
+                } else {
+                    op.put("name", "deleteko").put("result", jso);
+                }
+                this.callback(new String[]{op.toString()});
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            this.callback(new String[]{new JSONObject(op).toString()});
         }
     }
     
@@ -603,7 +623,9 @@ public class Yoplet extends JApplet implements FileOperator {
                 this.performCount();
             }
             
+            System.out.println("before runnable");
             this.javascriptListener.run();
+            System.out.println("applet started");
             
         } catch (Exception e) {
             this.trace("Error starting applet: " + e.getMessage());
@@ -704,6 +726,7 @@ public class Yoplet extends JApplet implements FileOperator {
 	
 	public void chooseFolder() {
 	   if (!jChooseRoot) {
+	       System.out.println("chooseroot");
 	       this.jChooseRoot = true;
 	   }
 	}

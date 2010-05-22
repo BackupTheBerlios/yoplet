@@ -6,8 +6,8 @@ import static org.junit.Assert.assertTrue;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.json.simple.JSONObject;
 import org.junit.Test;
-import org.yoplet.json.JSONObject;
 
 public class SerializationTest {
     
@@ -15,7 +15,8 @@ public class SerializationTest {
     public void testBasicSerialization() {
         Map result = new HashMap();
         result.put("file", "file information");
-        JSONObject jso = new JSONObject(result);
+        JSONObject jso = new JSONObject();
+        jso.putAll(result);
         assertNotNull(jso.toString());
         assertTrue(jso.toString().length() > 0 );
     }

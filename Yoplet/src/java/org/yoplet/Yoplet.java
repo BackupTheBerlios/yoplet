@@ -28,6 +28,9 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 import org.restlet.Client;
 import org.restlet.data.Cookie;
 import org.restlet.data.MediaType;
@@ -39,9 +42,6 @@ import org.restlet.resource.FileRepresentation;
 import org.restlet.resource.Representation;
 import org.yoplet.graphic.Outputable;
 import org.yoplet.graphic.TextOutputPanel;
-import org.yoplet.json.JSONArray;
-import org.yoplet.json.JSONException;
-import org.yoplet.json.JSONObject;
 
 public class Yoplet extends JApplet implements FileOperator {
     
@@ -247,12 +247,9 @@ public class Yoplet extends JApplet implements FileOperator {
             Map res = new HashMap();
             res.put("files", results);
             JSONObject js= new JSONObject();
-            try {
-            js.put("name", "listfiles").put("result", res);
+            js.put("name", "listfiles");
+            js.put("result", res);
             callback(new String[]{js.toString()});
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
         } 
         this.listPath = null;
     }
@@ -303,20 +300,23 @@ public class Yoplet extends JApplet implements FileOperator {
         	    Response response = client.post(resource, f);
         	    trace("url",resource.toString());
         	    trace("Status",""+response.getStatus()+"  vs " +Status.SUCCESS_OK.getCode());
-        	    Representation rep = response.getEntity();
+        	     Representation rep = response.getEntity();
                 JSONObject jso = new JSONObject();
                 jso.put("path", file.getAbsolutePath());
                 jso.put("md5", md5);
                 jso.put("checksum",new Long(FileUtils.checksumCRC32(file)));
                 JSONObject res = new JSONObject();
+                res.put("result",jso);
                 if (Status.SUCCESS_OK.equals(response.getStatus())) {
-                    callback(new String[]{res.put("name", "uploadok").put("result",jso).toString()});
+                    res.put("name", "uploadok");
+                    callback(new String[]{res.toString()});
                 } else {
-                    callback(new String[]{res.put("name", "uploadko").put("result",jso).toString()});
+                    res.put("name", "uploadko");
+                    callback(new String[]{res.toString()});
                 }
 
             } catch(Exception e) {
-                trace(e.getMessage());
+                trace("Ooops " + e.getMessage());
             } finally {
                 if (null != client) {
                     try {
@@ -356,19 +356,13 @@ public class Yoplet extends JApplet implements FileOperator {
      */
     public String performDelete(String files) {
         if (!jDeleteCall) {
-            try {
-                JSONArray jsfiles = new JSONArray(files);
-                this.deletequeue.clear();
-                for (int i = 0; i < jsfiles.length(); i++) {
-                    this.deletequeue.add(jsfiles.getString(i));
-                }
-                this.jDeleteCall = true;
-                return Yoplet.RETURN_OK;
-                
-            } catch (JSONException jse){
-                trace(jse.getMessage());
-                return Yoplet.RETURN_KO;
+            JSONArray jsfiles =  (JSONArray)JSONValue.parse(files);
+            this.deletequeue.clear();
+            for (int i = 0; i < jsfiles.size(); i++) {
+                this.deletequeue.add((String)jsfiles.get(i));
             }
+            this.jDeleteCall = true;
+            return Yoplet.RETURN_OK;
         } else {
             return Yoplet.RETURN_KO;
         }
@@ -386,20 +380,15 @@ public class Yoplet extends JApplet implements FileOperator {
      */
     public String performUpload(String rename, String files) {
         if (!jUploadCall) {
-            try {
             	this.rename = rename;
-            	JSONArray jsfiles = new JSONArray(files);
+            	JSONArray jsfiles = (JSONArray)JSONValue.parse(files);
             	this.uploadqueue.clear();
-            	for (int i = 0; i < jsfiles.length(); i++) {
-            	    String file = jsfiles.getString(i);
+            	for (int i = 0; i < jsfiles.size(); i++) {
+            	    String file = (String)jsfiles.get(i);
                     this.uploadqueue.add(file);
                 }
             	this.jUploadCall = true;
                 return Yoplet.RETURN_OK;
-            } catch (JSONException jse) {
-                trace(jse.getMessage());
-                return Yoplet.RETURN_KO;
-            }
         } else {
             return Yoplet.RETURN_KO;
         }
@@ -482,7 +471,6 @@ public class Yoplet extends JApplet implements FileOperator {
     }
     
     private void chooseRoot() {
-        System.out.println("choose1");
         if (null == this.jfilechoose) {
             this.jfilechoose = new  JFileChooser();
         }
@@ -491,15 +479,12 @@ public class Yoplet extends JApplet implements FileOperator {
         int choice = jfilechoose.showDialog(null, "OK");
         if (choice == JFileChooser.APPROVE_OPTION) {
             File f = jfilechoose.getSelectedFile();
-            
             Map result = new HashMap();
             result.put("path",f.getAbsolutePath());
             JSONObject op = new JSONObject();
-            try {
-                this.callback(new String[]{op.put("name","choosefile").put("result",result).toString()});
-            } catch(JSONException e) {
-                e.printStackTrace();
-            }
+            op.put("name","choosefile");
+            op.put("result", result);
+            this.callback(new String[]{op.toString()});
         }
         this.jChooseRoot = false;
     }
@@ -524,14 +509,16 @@ public class Yoplet extends JApplet implements FileOperator {
                 path = (String) iterator.next();
                 md5 = DigestUtils.md5Hex(path);
                 JSONObject jso = new JSONObject();
-                jso.put("path", path).put("md5", md5);
+                jso.put("path", path);
+                jso.put("md5", md5);
                 
                 JSONObject op = new JSONObject();
+                op.put("result", jso);
                 
                 if (FileUtils.deleteQuietly(new File(path))) {
-                    op.put("name", "deleteok").put("result", jso);
+                    op.put("name", "deleteok");
                 } else {
-                    op.put("name", "deleteko").put("result", jso);
+                    op.put("name", "deleteko");
                 }
                 this.callback(new String[]{op.toString()});
             } catch (Exception e) {

@@ -74,7 +74,7 @@ function handleStart() {
 }
 
 function handleDeletionOK(result) {
-	var hash = result.hash;
+	var hash = result.md5;
 	$('#'+hash).hide('explode',{},500,function(){
 	});
 }
@@ -123,6 +123,12 @@ function appletCallBack(args) {
 		var opname = operation.name;
 
 		switch (opname) {
+			case 'init':
+				alert('init');
+				break;
+			case 'start':
+				alert('start');			
+				break;
 			case 'choosefile':
 				handleRoot(operation.result);
 				break;

@@ -100,7 +100,7 @@ public class Yoplet extends JApplet implements FileOperator {
     Runnable javascriptListener = new Runnable() {
     	public void run() {
     	    
-    	    System.out.println("running");
+    	    trace("running");
     	    
     		while (true) {
     		    
@@ -178,6 +178,10 @@ public class Yoplet extends JApplet implements FileOperator {
             this.callbackmethod = cbmethod; 
         }
         
+        JSONObject res = new JSONObject();
+        res.put("name", "init");
+        callback(new String[]{res.toString()});
+        trace("init end");
     }	
 
     private void assertNotNull(Object object, String comment) throws Exception {
@@ -477,6 +481,7 @@ public class Yoplet extends JApplet implements FileOperator {
         this.jfilechoose.setMultiSelectionEnabled(false);
         jfilechoose.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         int choice = jfilechoose.showDialog(null, "OK");
+        trace("Dialog Shown");
         if (choice == JFileChooser.APPROVE_OPTION) {
             File f = jfilechoose.getSelectedFile();
             Map result = new HashMap();
@@ -549,7 +554,7 @@ public class Yoplet extends JApplet implements FileOperator {
 				if (file.exists() && !file.isDirectory()) {
 				    this.uploadFile(file, fileName);
 				} else {
-				    System.out.println("Cannot upload directory or non existing file -- skipping");
+				    trace("Cannot upload directory or non existing file -- skipping");
 				}
     			j++;
 			} catch (Exception e) {
@@ -566,9 +571,9 @@ public class Yoplet extends JApplet implements FileOperator {
     
     public void start() {
         
-        System.out.println("before parent start");
+        trace("before parent start");
         super.start();
-        System.out.println(" after parent start");
+        trace(" after parent start");
         
         try {
             
@@ -610,10 +615,13 @@ public class Yoplet extends JApplet implements FileOperator {
                 this.performCount();
             }
             
-            System.out.println("before runnable");
+            trace("before runnable");
             this.javascriptListener.run();
-            System.out.println("applet started");
+            trace("applet started");
             
+            JSONObject res = new JSONObject();
+            res.put("name", "start");
+            callback(new String[]{res.toString()});
         } catch (Exception e) {
             this.trace("Error starting applet: " + e.getMessage());
         }
@@ -670,7 +678,7 @@ public class Yoplet extends JApplet implements FileOperator {
     private boolean checkJava5() {
         String version = System.getProperty("java.version");
         boolean res = false;
-        System.out.println("Version : "+ version.split("\\.")[1]);
+        trace("Version : "+ version.split("\\.")[1]);
         if (version.split("\\.").length >= 2) {
             res = (Integer.parseInt(version.split("\\.")[1]) >= 5);
         } else {
@@ -713,7 +721,6 @@ public class Yoplet extends JApplet implements FileOperator {
 	
 	public void chooseFolder() {
 	   if (!jChooseRoot) {
-	       System.out.println("chooseroot");
 	       this.jChooseRoot = true;
 	   }
 	}

@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>currentDocument</key>
-	<string>app/views/Application/index.html</string>
+	<string>conf/routes</string>
 	<key>documents</key>
 	<array>
 		<dict>
@@ -21,20 +21,6 @@
 	<integer>200</integer>
 	<key>metaData</key>
 	<dict>
-		<key>app/controllers/Application.java</key>
-		<dict>
-			<key>caret</key>
-			<dict>
-				<key>column</key>
-				<integer>42</integer>
-				<key>line</key>
-				<integer>54</integer>
-			</dict>
-			<key>firstVisibleColumn</key>
-			<integer>0</integer>
-			<key>firstVisibleLine</key>
-			<integer>23</integer>
-		</dict>
 		<key>app/models/Upload.java</key>
 		<dict>
 			<key>caret</key>
@@ -48,20 +34,6 @@
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
 			<integer>0</integer>
-		</dict>
-		<key>app/views/Application/index.html</key>
-		<dict>
-			<key>caret</key>
-			<dict>
-				<key>column</key>
-				<integer>104</integer>
-				<key>line</key>
-				<integer>119</integer>
-			</dict>
-			<key>firstVisibleColumn</key>
-			<integer>0</integer>
-			<key>firstVisibleLine</key>
-			<integer>94</integer>
 		</dict>
 		<key>app/views/Application/uploads.html</key>
 		<dict>
@@ -122,8 +94,6 @@
 	</dict>
 	<key>openDocuments</key>
 	<array>
-		<string>app/controllers/Application.java</string>
-		<string>app/views/Application/index.html</string>
 		<string>conf/routes</string>
 		<string>public/stylesheets/main.css</string>
 		<string>app/views/main.html</string>

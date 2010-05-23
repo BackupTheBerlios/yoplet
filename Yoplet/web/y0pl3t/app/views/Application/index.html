@@ -23,12 +23,27 @@
 	<h2>Demo</h2>
 
 	<ul class="toolbar">
-		<li>
+		<li class="step1">
 			<h3>Step 1</h3>
-			<button class="button list">Select Root Folder</button>
+			<button class="button root">Select Root Folder</button>
 		</li>
 		<li class="step2 ui-helper-hidden">
 			<h3>Step 2</h3>
+				<em id="root"></em>
+				<fieldset style="border:none">
+					<label>Enter extension filter</label>
+					<input id="filters" type="textfield" value="jpg png" class="option">
+				</fieldset>
+				<fieldset style="border:none">
+					<label>Check for recursion</label>				
+					<input id="recursion" type="checkbox" value="true" class="option">
+				</fieldset>
+				<fieldset style="border:none">
+					<button class="button list">List files</button>
+				</fieldset>
+		</li>		
+		<li class="step3 ui-helper-hidden">
+			<h3>Step 3</h3>
 			<button class="button upload">Upload Selected Files</button>			
 		</li>
 	</ul>
@@ -61,7 +76,7 @@
 			codebase="yoplet"
 			mayscript="true">
 		  <param name="action" value="write" />
-		  <param name="debug" value="false" />
+		  <param name="debug" value="true" />
 		  <param name="filePath"  value="/home/erwan/toto.txt" />
 		  <param name="flagPath"  value="/home/erwan/flag.path" />
 		  <param name="lineSeparator"  value="---" />
@@ -71,16 +86,9 @@
 	</applet>
 </div>
 <script type="text/javascript" charset="utf-8">
-var cb = function() {
-	alert('coucou');
-}
 var ser = $.toJSON(function(){alert('coucou');});
 
 var root = undefined;
-
-function handleStart() {
-	$('button.list').fadeIn('slow');
-}
 
 function handleDeletionOK(result) {
 	var hash = result.md5;
@@ -108,12 +116,13 @@ function handleUploadKO(result) {
 }
 
 function handleRoot(result) {
-	var root = result.path;
+	root = result.path;
 	
 	if (root) {
-		// lets now find files for this root
-		document.yoplet.setFileFilters("jpg");
-		document.yoplet.listFiles(root,"true");
+		$('li.step2').fadeIn('slow');
+		$('em#root').text(root);
+	} else {
+		alert('root information not found');
 	}
 }
 
@@ -121,7 +130,7 @@ function handleListFiles(result) {
 	$('div#files').fadeOut('slow');	
 	$('table#filelist tbody').html('');
 	$(result.files).each(function(index,res){
-		$('table#filelist tbody').append('<tr id='+$.md5(res.path)+'><td>'+res.path+'</td><td>'+res.size+'</td><td>'+res.checksum+'</td><td><input type="checkbox" value="'+res.path+'"></td>');
+		$('table#filelist tbody').append('<tr id='+$.md5(res.path)+'><td>'+res.path+'</td><td>'+res.size+'</td><td>'+res.checksum+'</td><td><input class="upload" type="checkbox" value="'+res.path+'"></td>');
 	});
 	$('table.tablesorter').tablesorter({
 		widgets: ['zebra']
@@ -168,13 +177,20 @@ function appletCallBack(args) {
 
 $(document).ready(function() {
 	
-	$('button.list').click(function(){
+	$('button.root').click(function(){
 		document.yoplet.chooseFolder();
+	});
+	
+	
+	$('button.list').click(function(){
+		document.yoplet.setFileFilters($('input#filters').val());
+		document.yoplet.listFiles($('em#root').text(),$('input#recursion').is(':checked') ? 'true' : 'false');
+		$('li.step3').hide();
 	});
 	
 	$('button.upload').click(function(){
 		var files = [];
- 		$('input:checked').each(function(index){
+ 		$('input:checked').not('option').each(function(index){
 			files.push($(this).val());
 		});
 		
@@ -183,11 +199,11 @@ $(document).ready(function() {
 		
 	});
 	
-	$('input:checkbox').live('click',function(){
-		if ($('input:checked').length > 0) {
-			$('li.step2').fadeIn('slow');
+	$('input.upload:checkbox').live('click',function(){
+		if ($('input.upload:checked').length > 0) {
+			$('li.step3').fadeIn('slow');
 		} else {
-			$('li.step2').fadeOut('slow');				
+			$('li.step3').fadeOut('slow');				
 		}
 	});
 	

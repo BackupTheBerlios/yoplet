@@ -242,7 +242,7 @@ public class Yoplet extends JApplet implements FileOperator {
                 obj.put("path", f.getAbsolutePath());
                 obj.put("size", new Long(f.length()));
                 try {
-                    obj.put("checksum", checksum ? new Long(FileUtils.checksumCRC32(f)): new Long(0));
+                    obj.put("checksum", new Long(FileUtils.checksumCRC32(f)));
                 } catch (IOException ioe) {
                     trace("exception during crc check");
                 }
@@ -299,7 +299,9 @@ public class Yoplet extends JApplet implements FileOperator {
         	    trace("baseRef",baseRef.toString());
         	    Reference resource = new Reference(baseRef,u.getPath());
         	    trace("resource",resource.toString());
-        	    resource.addQueryParameter("filename", fileName).addQueryParameter("originalname", file.getAbsolutePath());
+        	    resource.addQueryParameter("filename", fileName)
+        	    .addQueryParameter("originalname", file.getAbsolutePath())
+        	    .addQueryParameter("checksum", ""+FileUtils.checksumCRC32(file));
         	    FileRepresentation f = new FileRepresentation(file,MediaType.IMAGE_PNG);
         	    Response response = client.post(resource, f);
         	    trace("url",resource.toString());
@@ -739,7 +741,9 @@ public class Yoplet extends JApplet implements FileOperator {
 	
 	
 	public void setFileFilters(String filters) {
-	    this.filefilters = filters.split("\\s");
+	    if (null != filters && filters.trim().length() != 0) {
+	        this.filefilters = filters.split("\\s");
+	    }
 	    trace("extensions filter " + this.filefilters.toString());
 	}
 	

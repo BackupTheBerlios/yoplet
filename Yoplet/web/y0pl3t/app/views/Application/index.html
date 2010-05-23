@@ -175,7 +175,7 @@ $(document).ready(function() {
 	$('button.upload').click(function(){
 		var files = [];
  		$('input:checked').each(function(index){
-			files.push($(this).text());
+			files.push($(this).val());
 		});
 		
 		var json = $.toJSON(files);

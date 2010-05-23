@@ -25,7 +25,7 @@
 	<ul class="toolbar">
 		<li>
 			<h3>Step 1</h3>
-			<button class="button list ui-helper-hidden">Select Root Folder</button>
+			<button class="button list">Select Root Folder</button>
 		</li>
 		<li class="step2 ui-helper-hidden">
 			<h3>Step 2</h3>
@@ -34,11 +34,20 @@
 	</ul>
 
 	<div id="files" class="ui-widget ui-helper-hidden" style="position:relative;float:left;width:100%">
-		<h3 class="ui-widget-header">Content</h3>
-		<div class="ui-widget-content ui-corner-all" style="width:100%;height:600px;overflow:auto;">
-			<ol class="content selectable">
-
-			</ol>
+		<h3>Content</h3>
+		<div class="ui-widget" style="width:100%;height:600px;overflow:auto;">
+			<table border="0" class="tablesorter" id="filelist">
+				<thead>
+					<tr>
+						<th>Chemin</th>
+						<th>Taille</th>
+						<th>Checksum</th>
+						<th>Sélection</th>						
+					</tr>
+				</thead>
+				<tbody>
+				</tbody>
+			</table>
 		</div>
 	</div>
 </article>
@@ -47,12 +56,12 @@
 			name="yoplet"
 			code="org.yoplet.Yoplet.class"
 			archive="@{'/public/libs/yoplet.jar'}"
-			width="400"
-			height="200"
+			width="0"
+			height="0"
 			codebase="yoplet"
 			mayscript="true">
 		  <param name="action" value="write" />
-		  <param name="debug" value="true" />
+		  <param name="debug" value="false" />
 		  <param name="filePath"  value="/home/erwan/toto.txt" />
 		  <param name="flagPath"  value="/home/erwan/flag.path" />
 		  <param name="lineSeparator"  value="---" />
@@ -110,11 +119,14 @@ function handleRoot(result) {
 
 function handleListFiles(result) {
 	$('div#files').fadeOut('slow');	
-	$('ol.content').html('');
+	$('table#filelist tbody').html('');
 	$(result.files).each(function(index,res){
-		$('ol.content').append('<li id='+$.md5(res.path)+' class="ui-corner-all">'+res.path+'</li>');
+		$('table#filelist tbody').append('<tr id='+$.md5(res.path)+'><td>'+res.path+'</td><td>'+res.size+'</td><td>'+res.checksum+'</td><td><input type="checkbox" value="'+res.path+'"></td>');
 	});
-	$('div#files').fadeIn('slow');
+	$('table.tablesorter').tablesorter({
+		widgets: ['zebra']
+	});
+	$('div#files').fadeIn('slow');	
 }
 
 function appletCallBack(args) {
@@ -124,10 +136,8 @@ function appletCallBack(args) {
 
 		switch (opname) {
 			case 'init':
-				alert('init');
 				break;
 			case 'start':
-				alert('start');			
 				break;
 			case 'choosefile':
 				handleRoot(operation.result);
@@ -157,13 +167,14 @@ function appletCallBack(args) {
 }
 
 $(document).ready(function() {
+	
 	$('button.list').click(function(){
 		document.yoplet.chooseFolder();
 	});
 	
 	$('button.upload').click(function(){
 		var files = [];
- 		$('li.ui-selected').each(function(index){
+ 		$('input:checked').each(function(index){
 			files.push($(this).text());
 		});
 		
@@ -172,16 +183,15 @@ $(document).ready(function() {
 		
 	});
 	
-	$('.selectable').selectable({
-		stop : function(event,ui) {
-			if ($('li.ui-selected').length > 0) {
-				$('li.step2').fadeIn('slow');
-			} else {
-				$('li.step2').fadeOut('slow');				
-			}	
+	$('input:checkbox').live('click',function(){
+		if ($('input:checked').length > 0) {
+			$('li.step2').fadeIn('slow');
+		} else {
+			$('li.step2').fadeOut('slow');				
 		}
 	});
 	
 	$('.button').button();
+	
 });
 </script>

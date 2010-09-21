@@ -46,8 +46,12 @@ public class Application extends Controller {
 	       Logger.error(ioe.getMessage());
 	       error();
 	    }
-	    
 
+	}
+	
+	
+	public static void movedTest() {
+		redirect("/test/upload", true);
 	}
 	
 	

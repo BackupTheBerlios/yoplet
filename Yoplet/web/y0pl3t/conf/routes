@@ -6,6 +6,7 @@
 GET     /                                       Application.index
 GET		/uploads								Application.uploads
 POST	/test/upload							Application.uploadTest
+POST	/test/upload/moved						Application.movedTest
 POST	/upload									Application.uploadTest
 
 # Map static resources from the /app/public folder to the /public path

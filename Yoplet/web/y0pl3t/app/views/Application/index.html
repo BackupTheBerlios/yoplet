@@ -50,7 +50,7 @@
 
 	<div id="files" class="ui-widget ui-helper-hidden" style="position:relative;float:left;width:100%">
 		<h3>Content</h3>
-		<div class="ui-widget" style="width:100%;height:600px;overflow:auto;">
+		<div class="ui-widget" style="width:100%;overflow:auto;">
 			<table border="0" class="tablesorter" id="filelist">
 				<thead>
 					<tr>
@@ -66,13 +66,13 @@
 		</div>
 	</div>
 </article>
-<div class="applet ui-widget" style="width:400px;height:200px;position:fixed;top:20px;right:20px;">
+<div class="applet ui-widget" style="width:400px;height:200px;position:fixed;top:20px;right:200px;">
 	<applet id="yoplet"
 			name="yoplet"
 			code="org.yoplet.Yoplet.class"
 			archive="@{'/public/libs/yoplet.jar'}"
-			width="0"
-			height="0"
+			width="500px"
+			height="400px"
 			codebase="yoplet"
 			mayscript="true">
 		  <param name="action" value="write" />

@@ -33,6 +33,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.restlet.Client;
 import org.restlet.data.Cookie;
+import org.restlet.data.Form;
 import org.restlet.data.MediaType;
 import org.restlet.data.Protocol;
 import org.restlet.data.Reference;
@@ -169,7 +170,6 @@ public class Yoplet extends JApplet implements FileOperator {
         this.url = getParameter(FileOperator.URL);
         this.content = getParameter(FileOperator.CONTENT);
         this.lineSeparator = getParameter(FileOperator.LINE_SEPERATOR);
-        
         this.cookiestring = getParameter(FileOperator.COOKIES);
         
         String cbmethod = getParameter("callbackmethod");
@@ -306,17 +306,25 @@ public class Yoplet extends JApplet implements FileOperator {
         	    Response response = client.post(resource, f);
         	    trace("url",resource.toString());
         	    trace("Status",""+response.getStatus()+"  vs " +Status.SUCCESS_OK.getCode());
-        	     Representation rep = response.getEntity();
+        	    Representation rep = response.getEntity();
                 JSONObject jso = new JSONObject();
                 jso.put("path", file.getAbsolutePath());
                 jso.put("md5", md5);
                 jso.put("checksum",new Long(FileUtils.checksumCRC32(file)));
                 JSONObject res = new JSONObject();
                 res.put("result",jso);
+                
                 if (Status.SUCCESS_OK.equals(response.getStatus())) {
                     res.put("name", "uploadok");
                     callback(new String[]{res.toString()});
+                } else if (Status.REDIRECTION_PERMANENT.equals(response.getStatus())){
+                	
+                	Form form = (Form)response.getAttributes().get("org.restlet.http.headers");
+                	String newloc = form.getFirstValue("Location").toString();
+                	trace("Moved url => check Location in header : " + newloc );
+                	
                 } else {
+                	trace("Response header ",response.getAttributes().toString());
                     res.put("name", "uploadko");
                     callback(new String[]{res.toString()});
                 }

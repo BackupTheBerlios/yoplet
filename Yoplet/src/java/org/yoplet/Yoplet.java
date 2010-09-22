@@ -689,7 +689,7 @@ public class Yoplet extends JApplet implements FileOperator {
     private boolean checkJava5() {
         String version = System.getProperty("java.version");
         boolean res = false;
-        trace("Version : "+ version.split("\\.")[1]);
+        trace("Java Version : "+ version.split("\\.")[1]);
         if (version.split("\\.").length >= 2) {
             res = (Integer.parseInt(version.split("\\.")[1]) >= 5);
         } else {

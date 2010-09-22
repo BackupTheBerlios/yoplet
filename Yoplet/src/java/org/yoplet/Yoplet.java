@@ -32,6 +32,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.restlet.Client;
+import org.restlet.Context;
 import org.restlet.data.Cookie;
 import org.restlet.data.Form;
 import org.restlet.data.MediaType;
@@ -282,7 +283,7 @@ public class Yoplet extends JApplet implements FileOperator {
         	    String p = u.getProtocol();
         	    Protocol protoc = Protocol.valueOf(p);
         	    
-        	    client = new Client(protoc);
+        	    client = new Client(new Context(),protoc);
         	    trace("before cookies");
         	    
         	    for (Iterator iterator = this.cookies.iterator(); iterator.hasNext();) {

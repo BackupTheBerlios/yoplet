@@ -21,6 +21,8 @@ import java.util.Set;
 
 import javax.swing.JApplet;
 import javax.swing.JFileChooser;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 
 import netscape.javascript.JSObject;
 
@@ -181,7 +183,16 @@ public class Yoplet extends JApplet implements FileOperator {
         
         JSONObject res = new JSONObject();
         res.put("name", "init");
+        
         callback(new String[]{res.toString()});
+        
+        try {
+     	   UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+     	   SwingUtilities.updateComponentTreeUI(this); // app is a reference to the JApplet instance.
+     	} catch(Exception ex) {
+     	   ex.printStackTrace();
+     	}
+     	
         trace("init end");
     }	
 

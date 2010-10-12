@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html>
     <head>
         <title>#{get 'title' /}</title>
@@ -21,7 +20,6 @@
         <script src="@{'/public/javascripts/jquery.md5.js'}" type="text/javascript" charset="utf-8"></script>
         <script src="@{'/public/javascripts/jquery.tablesorter.min.js'}" type="text/javascript" charset="utf-8"></script>
         <script src="@{'/public/javascripts/jquery.metadata.js'}" type="text/javascript" charset="utf-8"></script>
-        #{get 'moreScripts' /}
     </head>
     <body>
 		<div class="ui-widget row" style="position:relative;width:800px;margin:0 auto;">
@@ -41,5 +39,6 @@
         		#{doLayout /}
 			</div>	
 		</div>
+        #{get 'moreScripts' /}		
     </body>
 </html>

@@ -1,7 +1,6 @@
 package controllers;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -57,7 +56,8 @@ public class Application extends Controller {
 	
 	public static void uploads() {
 	    List uploads = Upload.all().order("-created").fetch();
-	    render(uploads);
+	    renderArgs.put("_uploads",uploads);
+	    render();
 	}
 
 }

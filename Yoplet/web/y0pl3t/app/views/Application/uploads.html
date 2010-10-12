@@ -1,17 +1,46 @@
 #{extends 'main.html'/}
 #{set title : 'Tests results' /}
 
-<div class="ui-widget">
 <h2>Uploads</h2>
-	#{list items:uploads, as:'up'}
-		<div>
-			<h3> ${up.filename} (${up.originalname})<h3/>
-			<p>
-				File upload date : ${up.created}
-			</p>
-			<p>
-				File hashcode : ${up.file?.hashCode()} <br/>
-			</p>
-		</div>
-	#{/list}	
-</div>
+
+#{if _uploads}
+<h2>Domaines enregistrés</h2>
+<table id="uploads">
+	<thead>
+		<tr>
+			<th>Date</th>
+			<th>File Name</th>
+			<th>Original Name</th>
+			<th>HashCode</th>				
+			<th>Operations</th>
+		</tr>
+	</thead>
+	<tbody>
+	#{list items:_uploads, as:'up'}
+		<tr>
+			<td>${up.created}</td>				
+			<td>${up.filename}</td>
+			<td>${up.originalname}</td>
+			<td>${up.file?.hashCode()} </td>
+			<td>#{a @Main.deleteDomain(dmo.id)}Supprimer#{/a}</td>
+		</tr>
+	#{/list}
+	</tbody>
+</table>
+
+#{set 'moreStyles'}
+<link rel="stylesheet" type="text/css" media="screen" href="@{'/public/datatables/css/demo_table.css'}">
+#{/set}
+
+#{set 'moreScripts'}
+<script type="text/javascript" charset="utf-8" src="@{'/public/datatables/js/jquery.datatables.min.js'}"></script>
+
+<script type="text/javascript" charset="utf-8">
+	$(document).ready(function(){
+		$('table#uploads').dataTable();
+	});
+</script>
+#{/set}
+#{/if}	
+	
+</table>

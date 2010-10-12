@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Observable;
 import java.util.Set;
 
+import javax.net.ssl.SSLEngineResult.Status;
 import javax.swing.JApplet;
 import javax.swing.JFileChooser;
 import javax.swing.SwingUtilities;
@@ -27,23 +28,22 @@ import javax.swing.UIManager;
 import netscape.javascript.JSObject;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.httpclient.Header;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpState;
+import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.cookie.Cookie2;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.multipart.FilePart;
+import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
+import org.apache.commons.httpclient.methods.multipart.Part;
+import org.apache.commons.httpclient.methods.multipart.StringPart;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
-import org.restlet.Client;
-import org.restlet.Context;
-import org.restlet.data.Cookie;
-import org.restlet.data.Form;
-import org.restlet.data.MediaType;
-import org.restlet.data.Protocol;
-import org.restlet.data.Reference;
-import org.restlet.data.Response;
-import org.restlet.data.Status;
-import org.restlet.resource.FileRepresentation;
-import org.restlet.resource.Representation;
 import org.yoplet.graphic.Outputable;
 import org.yoplet.graphic.TextOutputPanel;
 
@@ -288,37 +288,35 @@ public class Yoplet extends JApplet implements FileOperator {
     private void uploadFile(File file, String fileName) throws MalformedURLException {
     	if (checkJava5()) {
     	    String md5 = DigestUtils.md5Hex(file.getAbsolutePath());
-    	    Client client = null;
+        	HttpClient client = new HttpClient();
+        	PostMethod pm = null;
+    	    
     	    try {
-        	    java.net.URL u = new java.net.URL(this.url);
-        	    String p = u.getProtocol();
-        	    Protocol protoc = Protocol.valueOf(p);
         	    
-        	    client = new Client(new Context(),protoc);
         	    trace("before cookies");
-        	    
+        	    HttpState initialState = new HttpState();
         	    for (Iterator iterator = this.cookies.iterator(); iterator.hasNext();) {
-                    Cookie c = (Cookie) iterator.next();
+                    Cookie2 c = (Cookie2) iterator.next();
+                    initialState.addCookie(c);
                     trace("Cookie " + c.toString());
-                    client.getContext().getParameters().add(c);
                     trace("Client enriched with cookie " +  c.toString());
                 }
-        	    
+        	    client.setState(initialState);
         	    trace("after cookies");
         	    
-        	    client.start();
-        	    Reference baseRef = new Reference(Protocol.HTTP,u.getHost(),(-1 != u.getPort())?u.getPort():80);
-        	    trace("baseRef",baseRef.toString());
-        	    Reference resource = new Reference(baseRef,u.getPath());
-        	    trace("resource",resource.toString());
-        	    resource.addQueryParameter("filename", fileName)
-        	    .addQueryParameter("originalname", file.getAbsolutePath())
-        	    .addQueryParameter("checksum", ""+FileUtils.checksumCRC32(file));
-        	    FileRepresentation f = new FileRepresentation(file,MediaType.IMAGE_PNG);
-        	    Response response = client.post(resource, f);
-        	    trace("url",resource.toString());
-        	    trace("Status",""+response.getStatus()+"  vs " +Status.SUCCESS_OK.getCode());
-        	    Representation rep = response.getEntity();
+            	pm = new PostMethod(this.url);
+            	Part[] parts = {
+            			new StringPart("originalname", file.getAbsolutePath(),"UTF-8"),
+            			new StringPart("filename", fileName,"UTF-8"),
+            			new FilePart("file", file)
+            	};
+            	
+            	pm.setRequestEntity(new MultipartRequestEntity(parts, pm.getParams()));
+            	int status = client.executeMethod(pm);
+        	    
+        	    trace("after cookies, client initiated");
+        	    trace("Status",""+status+"  vs " +HttpStatus.SC_OK);
+        	    
                 JSONObject jso = new JSONObject();
                 jso.put("path", file.getAbsolutePath());
                 jso.put("md5", md5);
@@ -326,32 +324,27 @@ public class Yoplet extends JApplet implements FileOperator {
                 JSONObject res = new JSONObject();
                 res.put("result",jso);
                 
-                if (Status.SUCCESS_OK.equals(response.getStatus())) {
+                if (HttpStatus.SC_OK == status) {
                     res.put("name", "uploadok");
                     callback(new String[]{res.toString()});
-                } else if (Status.REDIRECTION_PERMANENT.equals(response.getStatus())){
-                	
-                	Form form = (Form)response.getAttributes().get("org.restlet.http.headers");
-                	String newloc = form.getFirstValue("Location").toString();
-                	trace("Moved url => check Location in header : " + newloc );
-                	
+                } else if (HttpStatus.SC_MOVED_PERMANENTLY == status) {                	
+                	trace("Moved url => check Location in header ");
+                	for (Header h:pm.getResponseHeaders()) {
+                		trace(h.getName() + ": " + h.getValue());
+                	}                	
+                    res.put("name", "uploadko");
+                    callback(new String[]{res.toString()});
                 } else {
-                	trace("Response header ",response.getAttributes().toString());
+                	for (Header h:pm.getResponseHeaders()) {
+                		trace(h.getName() + ": " + h.getValue());
+                	}
+                	trace("Response header ",pm.getResponseHeaders().toString());
                     res.put("name", "uploadko");
                     callback(new String[]{res.toString()});
                 }
 
             } catch(Exception e) {
                 trace("Ooops " + e.getMessage());
-            } finally {
-                if (null != client) {
-                    try {
-                        client.stop();
-                        client = null;
-                    } catch (Exception e) {
-                        // nada
-                    }
-                }
             }
     	} else {
     	    trace("Could not perform upload");
@@ -542,7 +535,7 @@ public class Yoplet extends JApplet implements FileOperator {
                 JSONObject op = new JSONObject();
                 op.put("result", jso);
                 
-                if (FileUtils.deleteQuietly(new File(path))) {
+                if (new File(path).delete()) {
                     op.put("name", "deleteok");
                 } else {
                     op.put("name", "deleteko");
@@ -611,7 +604,7 @@ public class Yoplet extends JApplet implements FileOperator {
                         trace("Adding cookie " + cooks[i]);
                         String c = getCookie(cooks[i]);
                         if (null !=c) {
-                            cs.add(new Cookie(cooks[i], c));
+                            cs.add(new Cookie2("127.0.0.1",cooks[i], c));
                             trace("Cookie added " + cooks[i]);
                         } else {
                             trace("Cookie not added " + cooks[i]);

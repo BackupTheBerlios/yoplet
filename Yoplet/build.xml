@@ -1,17 +1,69 @@
-<project name="Yoplet" default="info">
+<project name="Yoplet" default="info" xmlns:artifact="urn:maven-artifact-ant">
+	
 	<property environment="myenv" />
 	<property file="build.properties"/>
 	
-	<path id="jars">
-		<pathelement path="build/lib/org.restlet.jar"/>
-		<pathelement path="build/lib/com.noelios.restlet.jar"/>
-	    <pathelement path="build/lib/commons-logging-1.1.1.jar"/>
-		<pathelement path="build/lib/commons-io-1.4.jar"/>
-		<pathelement path="build/lib/commons-codec-1.3.jar"/>
-		<pathelement path="build/lib/commons-httpclient-3.1.jar"/>
-		<pathelement path="build/lib/plugin-jar.jar"/>
-		<pathelement path="build/lib/json_simple-1.1.jar"/>
+	<path id="compile.path">
+		<fileset dir="${lib}/compile">
+			<include name="*.jar" />
+		</fileset>
+		<fileset dir="build/lib">
+			<include name="plugin-jar.jar" />
+		</fileset>		
 	</path>
+
+	<path id="test.path">
+		<fileset dir="${lib}/test">
+			<include name="*.jar" />
+		</fileset>
+	</path>	
+	
+	<target name="clean">
+		<delete>
+			<fileset dir="lib/compile" includes="*.jar"/>
+			<fileset dir="lib/test" includes="*.jar"/>			
+		</delete>
+	</target>
+	
+	<target name="maven-def">
+		<mkdir dir="lib"/>
+		<path id="maven-ant-tasks.classpath" path="${maven}/maven-ant-tasks.jar" />
+		<typedef resource="org/apache/maven/artifact/ant/antlib.xml" uri="urn:maven-artifact-ant" classpathref="maven-ant-tasks.classpath" />
+		<artifact:pom id="maven.project" file="${maven}/pom.xml" />
+		<artifact:remoteRepository id="maven2-repository.dev.java.net" url="http://download.java.net/maven/2/maven2-repository.dev.java.net" />
+		<artifact:remoteRepository id="gdteam.release.repo" url="http://nexus.leyio.com/nexus/content/groups/gdteam.release.repo" />
+		<artifact:remoteRepository id="gdteam.snapshot.repo" url="http://nexus.leyio.com/nexus/content/groups/gdteam.snapshots.repo">
+		    <snapshots updatePolicy="always" />
+		</artifact:remoteRepository>
+		<artifact:localRepository id="local.repository" path="${user.home}/.hudson/m2/repository" />
+	</target>	
+	
+	<target name="thirdparty" unless="dev" depends="maven-def,clean">
+		<artifact:dependencies filesetId="compile.fileset" useScope="compile" settingsFile="${maven}/settings.xml" versionsId="compile.versions">
+			<pom refid="maven.project" />
+			<remoteRepository refid="maven2-repository.dev.java.net"/>
+			<remoteRepository refid="gdteam.release.repo" />
+			<remoteRepository refid="gdteam.snapshot.repo" />
+			<localRepository refid="local.repository" />
+		</artifact:dependencies>
+		
+		<copy todir="lib/compile">
+			<fileset refid="compile.fileset" />
+			<mapper classpathref="maven-ant-tasks.classpath" classname="org.apache.maven.artifact.ant.VersionMapper" from="${compile.versions}" to="flatten" />
+		</copy>
+		
+
+		<artifact:dependencies filesetId="test.fileset" useScope="test" settingsFile="${maven}/settings.xml" versionsId="test.versions">
+			<pom refid="maven.project" />
+			<remoteRepository refid="gdteam.release.repo" />
+			<remoteRepository refid="gdteam.snapshot.repo" />
+			<localRepository refid="local.repository" />
+		</artifact:dependencies>
+		<copy todir="lib/test">
+			<fileset refid="test.fileset" />
+			<mapper classpathref="maven-ant-tasks.classpath" classname="org.apache.maven.artifact.ant.VersionMapper" from="${test.versions}" to="flatten" />
+		</copy>
+	</target>
 
 	<target name="info"  description="gives info about the build file targets">
 		<echo>[target : compile]</echo>
@@ -48,6 +100,7 @@
 		</tstamp>
 		<delete dir="build/classes"/>
 		<mkdir dir="build/classes"/>
+		
 		<javac  
 			destdir="build/classes" 
 			includes="**/*.java" 
@@ -55,11 +108,11 @@
 			debug="${debug}" 
 			source="${source}" 
 			target="${target}"
-			includeantruntime="false"
-		>
+			includeantruntime="false">
+			
 			<src path="src/java"/>
 			
-			<classpath refid="jars"/>
+			<classpath refid="compile.path"/>
 		</javac>	
 	</target>
 	
@@ -67,7 +120,7 @@
 	<target name="build" depends="compile">
 		<delete file="build/archives/yoplet.jar"/>
 		<mkdir dir="build/archives"/>
-		<jar destfile="build/archives/yoplet.jar">
+		<jar destfile="build/archives/yoplet.jar" compress="true" duplicate="preserve" keepcompression="true">
 			<manifest>
 				<attribute name="Build-By" value="${user.name}" />
 				<section name="${ant.project.name}">
@@ -77,14 +130,12 @@
 				</section>
 			</manifest>
 			<fileset dir="build/classes" includes="**" excludes="**/*Test*"/>
-			<fileset dir="doc" includes="licence.txt"/>
-			<zipfileset src="build/lib/org.restlet.jar" includes="**/*" excludes="**/*.txt"/>
-			<zipfileset src="build/lib/com.noelios.restlet.jar" includes="**/*" excludes="**/*.txt"/>			
-			<zipfileset src="build/lib/commons-io-1.4.jar" includes="**/*" excludes="**/*.txt"/>
-			<zipfileset src="build/lib/commons-httpclient-3.1.jar" includes="**/*" excludes="**/*.txt"/>
-			<zipfileset src="build/lib/commons-codec-1.3.jar" includes="**/*" excludes="**/*.txt"/>
-			<zipfileset src="build/lib/commons-logging-1.1.1.jar" includes="**/*" excludes="**/*.txt"/>
-			<zipfileset src="build/lib/json_simple-1.1.jar" includes="**/*" excludes="**/*.txt"/>			
+			<fileset dir="doc" includes="licence.txt"/>			
+			<zipfileset src="lib/compile/commons-codec.jar" includes="**/*" excludes="**/*.txt"/>
+			<zipfileset src="lib/compile/commons-io.jar" includes="**/*" excludes="**/*.txt"/>
+			<zipfileset src="lib/compile/commons-httpclient.jar" includes="**/*" excludes="**/*.txt"/>
+				<zipfileset src="lib/compile/commons-logging.jar" includes="**/*" excludes="**/*.txt"/>			
+			<zipfileset src="lib/compile/json-simple.jar" includes="**/*" excludes="**/*.txt"/>			
 		</jar>
 	</target>
 	
@@ -113,17 +164,9 @@
 	<target name="sign-jar" description="jar sign">
 		<!-- commons jars have ever been signed if new jars are used you must sign them -->
 		<signjar jar="build/archives/yoplet.jar" alias="${key.alias}" storepass="${key.store.pass}" verbose="true"/>
-	<!--		
-		<signjar jar="build/lib/com.noelios.restlet.jar" alias="${key.alias}" storepass="${key.store.pass}" verbose="true"/>
-		<signjar jar="build/lib/org.restlet.jar" alias="${key.alias}" storepass="${key.store.pass}" verbose="true"/>
-		<signjar jar="build/lib/commons-io-1.4.jar" alias="${key.alias}" storepass="${key.store.pass}" verbose="true"/>
-		<signjar jar="build/lib/commons-httpclient-3.1.jar" alias="${key.alias}" storepass="${key.store.pass}" verbose="true" />
-		<signjar jar="build/lib/commons-codec-1.3.jar" alias="${key.alias}" storepass="${key.store.pass}" verbose="true" />
-		<signjar jar="build/lib/commons-logging-1.1.1.jar" alias="${key.alias}" storepass="${key.store.pass}" verbose="true" />
-	-->
 	</target>
 	
-	<target name="release-src" depends="build">
+	<target name="release-src" depends="thirdparty, build">
 		<delete file="build/archives/yoplet-${build.version}.zip"/>
 		<delete file="build/archives/yoplet-${build.version}.tar.gz"/>
 		<zip destfile="build/archives/yoplet-${build.version}.zip">
@@ -168,7 +211,6 @@
 			
 			<classpath>
 				<fileset dir="build/lib" includes="junit.jar"/>
-				<fileset dir="build/lib" includes="org.restlet.jar"/>
 			</classpath>
 		</javac>
 		
@@ -189,16 +231,6 @@
 	</target>
 		
 	<target name="unit-tests" depends="build-test">
-		<path id="test.path">
-			<pathelement path="build/lib/junit.jar"/>
-			<pathelement path="build/lib/org.restlet.jar"/>
-			<pathelement path="build/lib/com.noelios.restlet.jar"/>
-			<pathelement path="build/lib/commons-io-1.4.jar"/>
-			<pathelement path="build/lib/commons-httpclient-3.1.jar"/>
-			<pathelement path="build/lib/commons-codec-1.3.jar"/>
-			<pathelement path="build/lib/commons-logging-1.1.1.jar"/>			
-			<pathelement path="${archives}/yoplet-test.jar"/>
-		</path>
 		
 		<mkdir dir="${reports}/junit"/>
 		<mkdir dir="${reports}/test-result"/>

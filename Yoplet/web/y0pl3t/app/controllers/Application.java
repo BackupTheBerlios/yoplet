@@ -8,6 +8,7 @@ import java.util.List;
 import models.Upload;
 import play.Logger;
 import play.mvc.Controller;
+import siena.Model;
 
 import com.google.appengine.api.datastore.Blob;
 
@@ -51,6 +52,11 @@ public class Application extends Controller {
 	
 	public static void movedTest() {
 		redirect("/test/upload", true);
+	}
+	
+	public static void deleteUpload(Long id) {
+		int count = Upload.all().filter("id", id).delete();
+		uploads();
 	}
 	
 	

@@ -22,7 +22,7 @@
 			<td>${up.filename}</td>
 			<td>${up.originalname}</td>
 			<td>${up.file?.hashCode()} </td>
-			<td>#{a @Main.deleteDomain(dmo.id)}Supprimer#{/a}</td>
+			<td>#{a @Application.deleteUpload(up.id)}Supprimer#{/a}</td>
 		</tr>
 	#{/list}
 	</tbody>
